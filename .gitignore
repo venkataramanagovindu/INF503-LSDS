@@ -1,0 +1,6 @@
+*.o
+*.out
+hellomake
+.vscode
+human.txt
+.txt
