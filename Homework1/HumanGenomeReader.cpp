@@ -15,100 +15,13 @@ HumanGenomeReader::~HumanGenomeReader()
     }
 }
 
-// void HumanGenomeReader::ReadFile()
-// {
-//     bool isHeader = false;
-//     long long int totalGenomeLength = 0;
-//     long genomeLength = 0;
-//     char longScaffoldName[14], headerCharArray[14];
-//     int scaffoldCount = 0, longScaffoldLength = 0, headerCharidx = 0;
-//     char* HumanGenome;
-//     char ch = ' ';
-
-//     ifstream inputFile(FilePath, ios::binary);
-
-//     if (!inputFile.is_open())
-//     {
-//         cerr << "Failed to open the file." << endl;
-//         return;
-//     }
-
-//     inputFile.seekg(0, ios::end);
-//     streamsize fileSize = inputFile.tellg();
-//     inputFile.seekg(0, ios::beg);
-
-//     cout << fileSize;
-
-//     HumanGenome = new char[fileSize + 1];
-
-//     cout << HumanGenome[0] ;
-
-//     // if (inputFile.read(HumanGenome, fileSize)) {
-//     //     HumanGenome[fileSize] = '\0';
-//     //     cout << HumanGenome << endl;
-//     // } else {
-//     //     cerr << "Error reading the file." << endl;
-//     //     delete[] HumanGenome;
-//     //     HumanGenome = nullptr;
-//     // }
-
-//     // Read characters into the HumanGenome array
-//     for (int charArridx = 0; charArridx < fileSize; ++charArridx)
-//     {
-//         ch = inputFile.get();
-//         // cout << "char" << ch << '\n';
-//         // 62 is > >
-//         if (ch == 62) {
-//             isHeader = true;
-
-//             /*if (genomeLength != 0) {
-//                 cout << "Length of scaffold " << headerCharArray << "\n" << genomeLength << "\n";
-//             }*/
-
-//             if (genomeLength > longScaffoldLength) {
-//                 longScaffoldLength = genomeLength;
-//                 strcpy(longScaffoldName, headerCharArray);
-//             }
-
-//             totalGenomeLength += genomeLength;
-//             genomeLength = 0;
-//         }
-
-//         if (isHeader) {
-//             if (ch == 10) {
-//                 isHeader = false;
-//                 ++scaffoldCount;
-//                 headerCharArray[headerCharidx] = '\0';
-//                 //std::cout << strlen(headerCharArray);
-//                 headerCharidx = 0;
-//             }
-//             else
-//             {
-//                 headerCharArray[headerCharidx++] = ch;
-//             }
-//         }
-//         else if(ch != 10)
-//         {
-//             HumanGenome[charArridx++] = ch;
-//             genomeLength++;
-//         }
-//     }
-
-//     cout << HumanGenome[0] << endl;
-//     HumanGenome[fileSize] = '\0'; // Null-terminate the array
-
-//     cout << "Came out";
-
-//     inputFile.close();
-// }
-
 void HumanGenomeReader::ReadFile()
 {
     bool isHeader = false;
-    long long totalGenomeLength = 0;
+    totalGenomeLength  = 0;
     long genomeLength = 0;
     char longScaffoldName[15], headerCharArray[15];
-    int scaffoldCount = 0, longScaffoldLength = 0, headerCharidx = 0;
+    long int scaffoldCount = 0, longScaffoldLength = 0, headerCharidx = 0;
     char ch = ' ';
 
     ifstream inputFile(FilePath, ios::binary);
@@ -124,6 +37,7 @@ void HumanGenomeReader::ReadFile()
     inputFile.seekg(0, ios::beg);
 
     HumanGenome = new char[fileSize + 1];
+
     if (HumanGenome == nullptr)
     {
         cerr << "Failed to allocate memory for HumanGenome." << endl;
@@ -134,8 +48,9 @@ void HumanGenomeReader::ReadFile()
     long long int charArridx = 0;
 
     // Read characters into the HumanGenome array
-    while (inputFile >> noskipws >> ch)
-    {
+    for (int i = 0; i < fileSize; ++i)
+     {
+         ch = inputFile.get();
         // cout << charArridx;
         if (ch == '>')
         {
@@ -183,10 +98,7 @@ void HumanGenomeReader::ReadFile()
         }
     }
 
-
-
-
-    
+    totalGenomeLength += genomeLength;
 
     // Null-terminate the HumanGenome array
     HumanGenome[charArridx] = '\0';
@@ -195,6 +107,7 @@ void HumanGenomeReader::ReadFile()
     cout << "Long Scaffold Length: " << longScaffoldLength << '\n';
     cout << "Scaffold Count: " << scaffoldCount << '\n';
     cout << "Avg Scaffold: " << (scaffoldCount > 0 ? totalGenomeLength / scaffoldCount : 0) << '\n';
+    cout << "Total Scaffod Length " << totalGenomeLength << endl;
 
     inputFile.close();
 }
@@ -213,16 +126,16 @@ void HumanGenomeReader::AssesGenome()
         switch (HumanGenome[index++])
         {
         case 'A':
-            CountOfA++;
+            ++CountOfA;
             break;
         case 'C':
-            CountOfC++;
+            ++CountOfC;
             break;
         case 'G':
-            CountOfG++;
+            ++CountOfG;
             break;
         case 'T':
-            CountOfT++;
+            ++CountOfT;
             break;
 
         default:
@@ -230,13 +143,15 @@ void HumanGenomeReader::AssesGenome()
         }
     }
 
-    cout << "CountOfA " << CountOfA << '\n';
+    cout << "\nCountOfA " << CountOfA << '\n';
     cout << "CountOfC " << CountOfC << '\n';
     cout << "CountOfG " << CountOfG << '\n';
     cout << "CountOfT " << CountOfT << '\n';
 
-    cout << "Percentage of A" << CountOfA / 
+    cout << "Percentage of A: " << (static_cast<double>(CountOfA) / totalGenomeLength) * 100 << "%" << endl;
+    cout << "Percentage of T: " << (static_cast<double>(CountOfT) / totalGenomeLength) * 100 << "%" << endl;
 
+    cout << "Replacing N with A";
     ReplaceTheChar('N', 'A');
 }
 
