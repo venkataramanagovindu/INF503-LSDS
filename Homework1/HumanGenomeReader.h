@@ -2,6 +2,7 @@
 #define HUMANGENOMEREADER_H
 
 #include <string>
+#include <cstring>
 
 using namespace std;
 
@@ -9,6 +10,7 @@ class HumanGenomeReader
 {
     private:
         char* HumanGenome;
+        long long int totalGenomeLength;
     public:
         HumanGenomeReader();
         ~HumanGenomeReader();

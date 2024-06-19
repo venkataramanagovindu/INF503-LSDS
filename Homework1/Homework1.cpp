@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <chrono>
 #include "HumanGenomeReader.h"
 
 using namespace std;
@@ -8,13 +9,14 @@ using namespace std::chrono;
 
 int main(int argc, char** argv)
 {
-    HumanGenomeReader* reader = new HumanGenomeReader();
-    reader->FilePath = "human_small.txt";
+    HumanGenomeReader reader;
+    // reader->FilePath = "/common/contrib/classroom/inf503/genomes/human.txt";
+    reader.FilePath = "human_medium.txt";
     cout << "Hello World \n";
     // Get starting timepoint
-    reader->ReadFile();
+    reader.ReadFile();
     auto start = high_resolution_clock::now();
-    reader->AssesGenome();
+    reader.AssesGenome();
     // Get ending timepoint
     auto stop = high_resolution_clock::now();
 
@@ -26,6 +28,6 @@ int main(int argc, char** argv)
     cout << "Time taken by function: "
          << duration.count() << " Seconds" << endl;
 
-    delete reader; // Properly delete the dynamically allocated object
+    // delete reader; // Properly delete the dynamically allocated object
     return 0;
 }
