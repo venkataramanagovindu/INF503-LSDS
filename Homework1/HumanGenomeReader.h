@@ -1,8 +1,10 @@
 #ifndef HUMANGENOMEREADER_H
 #define HUMANGENOMEREADER_H
 
-#include <string>
+
 #include <cstring>
+#include <iostream>
+#include <fstream>
 
 using namespace std;
 

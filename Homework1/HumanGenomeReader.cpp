@@ -1,6 +1,4 @@
 #include "HumanGenomeReader.h"
-#include <iostream>
-#include <fstream>
 
 HumanGenomeReader::HumanGenomeReader()
 {
@@ -98,18 +96,18 @@ void HumanGenomeReader::ReadFile()
         }
     }
 
+    inputFile.close();
     totalGenomeLength += genomeLength;
 
     // Null-terminate the HumanGenome array
     HumanGenome[charArridx] = '\0';
 
-    cout << "Long Scaffold Name: " << longScaffoldName << '\n';
-    cout << "Long Scaffold Length: " << longScaffoldLength << '\n';
-    cout << "Scaffold Count: " << scaffoldCount << '\n';
-    cout << "Avg Scaffold: " << (scaffoldCount > 0 ? totalGenomeLength / scaffoldCount : 0) << '\n';
-    cout << "Total Scaffod Length " << totalGenomeLength << endl;
+    cout << "Scaffold Count: " << scaffoldCount << endl;
+    cout << "Longest Scaffold Name: " << longScaffoldName << endl;
+    cout << "Longest Scaffold Length: " << longScaffoldLength << endl;
+    cout << "Average Scaffold Length: " << (scaffoldCount > 0 ? totalGenomeLength / scaffoldCount : 0) << endl;
+    cout << "Total Scaffod Length: " << totalGenomeLength << endl;
 
-    inputFile.close();
 }
 
 
@@ -122,7 +120,6 @@ void HumanGenomeReader::AssesGenome()
     long long int CountOfT = 0;
     while (HumanGenome[index] != '\0')
     {
-        // cout << this->HumanGenome[index++] << '\n';
         switch (HumanGenome[index++])
         {
         case 'A':
@@ -143,21 +140,21 @@ void HumanGenomeReader::AssesGenome()
         }
     }
 
-    cout << "\nCountOfA " << CountOfA << '\n';
-    cout << "CountOfC " << CountOfC << '\n';
-    cout << "CountOfG " << CountOfG << '\n';
-    cout << "CountOfT " << CountOfT << '\n';
+    cout << endl << "Big O notation of the search: O(n) - Linear" << endl;
+    cout << endl << "CountOfA: " << CountOfA << endl;
+    cout << "CountOfC: " << CountOfC << endl;
+    cout << "CountOfG: " << CountOfG << endl;
+    cout << "CountOfT: " << CountOfT << endl;
 
-    cout << "Percentage of A: " << (static_cast<double>(CountOfA) / totalGenomeLength) * 100 << "%" << endl;
-    cout << "Percentage of T: " << (static_cast<double>(CountOfT) / totalGenomeLength) * 100 << "%" << endl;
+    cout << endl << "Percentage of A: " << ((double)(CountOfA) / totalGenomeLength) * 100 << "%" << endl;
+    cout << "Percentage of T: " << ((double)(CountOfT) / totalGenomeLength) * 100 << "%" << endl;
 
-    cout << "Replacing N with A";
+    cout << "Replacing N with A" << endl;
     ReplaceTheChar('N', 'A');
 }
 
 void HumanGenomeReader::ReplaceTheChar(char ChatToBeReplaced, char CharToBereplacedWith)
 {
-    // cout << this->HumanGenome << '\n';
     long long int index = 0;
     while (HumanGenome[index] != '\0')
     {
@@ -167,5 +164,4 @@ void HumanGenomeReader::ReplaceTheChar(char ChatToBeReplaced, char CharToBerepla
         }
         ++index;
     }
-    // cout << this->HumanGenome << '\n';
 }

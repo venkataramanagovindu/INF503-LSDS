@@ -1,6 +1,3 @@
-#include <iostream>
-#include <fstream>
-#include <string>
 #include <chrono>
 #include "HumanGenomeReader.h"
 
@@ -26,8 +23,8 @@ int main(int argc, char** argv)
     {
         // reader->FilePath = "/common/contrib/classroom/inf503/genomes/human.txt";
         reader->FilePath = filePath;
-        cout << "Hello World \n";
         // Get starting timepoint
+        cout << "Reading the file" << endl << endl;
         reader->ReadFile();
 
         if(subProgram == "all")
