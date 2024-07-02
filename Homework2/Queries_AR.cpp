@@ -176,8 +176,24 @@ void Queries_AR:: Search()
     for(int i = 0; i <  2; i++)
     {
         cout << "Searching in the first " << LengthsToSearch[i] << endl;
-        long long int fargmentCount = LengthsToSearch[i] > totalGenomeLength ? LengthsToSearch[i] : totalGenomeLength;
+        long long int fargmentCount = LengthsToSearch[i] < totalGenomeLength ? LengthsToSearch[i] : totalGenomeLength;
+
+            time_t start_t, end_t;
+            time(&start_t);
+
+            // Assess the genome
+            // reader->AssesGenome();
+
         SearchInGivenLength(fargmentCount);
+            time(&end_t);
+
+
+            // Calculating total time taken by the program.
+            double time_taken = double(end_t - start_t);
+            cout << "Time taken to read the file : " << fixed
+                << time_taken;
+            cout << " sec " << endl;
+
     }
 }
 
@@ -186,6 +202,7 @@ void Queries_AR::SearchInGivenLength(long long int fargmentCount)
 {
     for(long long int genomeindex = 0; genomeindex < fargmentCount - QUERIES_LENGTH + 1; genomeindex++)
     {
+        int numberOfFragmentsFound = 0;
         char genomeFragment[QUERIES_LENGTH + 1];
 
         for(int i = 0; i < QUERIES_LENGTH; i++)
@@ -195,7 +212,7 @@ void Queries_AR::SearchInGivenLength(long long int fargmentCount)
         genomeFragment[QUERIES_LENGTH] = '\0';
 
         // cout << "at " << genomeindex << " " <<  genomeFragment << endl;
-        if(SearchInQuery(genomeFragment) == 1)
+        if(SearchInQuery(genomeFragment) == 1 && numberOfFragmentsFound < PRINT_FRAGMENTS)
         {
                 cout << "found at " <<  genomeindex << " " << genomeFragment << endl;
         }
@@ -222,12 +239,12 @@ int Queries_AR::SearchInQuery(char subjectFragment[])
 }
 
 void Queries_AR::sort() {
-    cout << "Quick Sort 225" << endl;
+    // cout << "Quick Sort 225" << endl;
     QuickSort(QueriesArray, 0, this->QueriesCount - 1 );
 }
 
 void Queries_AR::QuickSort(char** arr, long long int start, long long int end) {
-    cout << "Quick Sort 230" << endl;
+    // cout << "Quick Sort 230" << endl;
     if (start < end) {
         long long int p = partition(arr, start, end);
 

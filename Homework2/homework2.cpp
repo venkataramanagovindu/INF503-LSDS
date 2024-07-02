@@ -7,7 +7,7 @@ using namespace std::chrono;
 int main(int argc, char** argv)
 {
     // Check if a file path and sub-program were provided
-    if (argc < 2) {
+    if (argc < 4) {
         cerr << "Usage: " << argv[0] << " <file_path> <sub_program>" << endl;
         return 1;
     }
@@ -15,6 +15,9 @@ int main(int argc, char** argv)
     // Retrieve file path and sub-program from command line arguments
     string filePath = argv[1];
     string queriesFilePath = argv[2];
+        // Convert third argument to long long int
+    char* endptr;
+    long long int LenthToSearch = strtoll(argv[3], &endptr, 10);
     // string subProgram = argv[2];
 
     // Create a Queries_AR object
@@ -40,7 +43,27 @@ int main(int argc, char** argv)
 
         cout << "Searching Started" << endl;
 
-        queriesReader->Search();
+        long long int fragmentCount = LenthToSearch < queriesReader->totalGenomeLength ? LenthToSearch : queriesReader->totalGenomeLength;
+
+        cout << "Total queriesReader->totalGenomeLength " << queriesReader->totalGenomeLength << endl; 
+
+        cout << "Searching first " << fragmentCount << endl;
+
+        // queriesReader->Search();
+
+                    time_t start_t, end_t;
+            time(&start_t);
+
+        queriesReader->SearchInGivenLength(fragmentCount);
+
+        time(&end_t);
+
+
+            // Calculating total time taken by the program.
+            double time_taken = double(end_t - start_t);
+            cout << "Time taken to read the file : " << fixed
+                << time_taken;
+            cout << " sec " << endl;
 
         cout << "Searching Completed" << endl;
 
@@ -49,12 +72,29 @@ int main(int argc, char** argv)
             cout << queriesReader->QueriesArray[i] << endl;
         }
         queriesReader->sort();
+
+
+                    
+
+
         cout << "After Sort" << endl;
                 for(int i = 0; i < 5;i++){
             cout << queriesReader->QueriesArray[i] << endl;
         }
+            time(&start_t);
 
-        queriesReader->Search();
+        queriesReader->SearchInGivenLength(fragmentCount);
+
+        time(&end_t);
+
+
+            // Calculating total time taken by the program.
+            time_taken = double(end_t - start_t);
+            cout << "Time taken to read the file : " << fixed
+                << time_taken;
+            cout << " sec " << endl;
+
+        // queriesReader->Search();
 
 
 

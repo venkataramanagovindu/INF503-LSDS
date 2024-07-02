@@ -9,14 +9,15 @@ using namespace std;
 
 const int SCAFFOLD_HEADER_LENGTH = 15;
 const int QUERIES_LENGTH = 32;
+const int PRINT_FRAGMENTS = 15;
 
 class Queries_AR
 {
 private:
     char *HumanGenome;
-    long long int totalGenomeLength;
 
 public:
+    long long int totalGenomeLength;
     long long int LengthsToSearch[2];
     // TODO:: Move to private
     char **QueriesArray;
