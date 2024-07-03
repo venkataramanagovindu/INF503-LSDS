@@ -22,10 +22,7 @@ int main(int argc, char **argv)
 
     string sortOrNot = argv[4];
 
-    Queries_AR *queriesReader = new Queries_AR();
-
-    queriesReader->FilePath = filePath;
-    queriesReader->QueriesFilePath = queriesFilePath;
+    Queries_AR *queriesReader = new Queries_AR(filePath, queriesFilePath);
 
     // Read the genome file
     cout << "Reading the human genome file" << endl;

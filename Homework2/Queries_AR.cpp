@@ -2,8 +2,13 @@
 
 Queries_AR::Queries_AR(/* args */)
 {
-    LengthsToSearch[0] = 5000;
-    LengthsToSearch[1] = 10000;
+    totalGenomeLength = 0;
+    QueriesCount = 0;
+}
+
+Queries_AR::Queries_AR(string filePath, string queriesFilePath){
+    FilePath = filePath;
+    QueriesFilePath = queriesFilePath;
 }
 
 Queries_AR::~Queries_AR()

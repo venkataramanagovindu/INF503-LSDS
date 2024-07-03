@@ -18,10 +18,10 @@ private:
 
 public:
     long long int totalGenomeLength;
-    long long int LengthsToSearch[2];
     // TODO:: Move to private
     char **QueriesArray;
     Queries_AR(/* args */);
+    Queries_AR(string filePath, string queriesFilePath);
     ~Queries_AR();
     string FilePath;
     string QueriesFilePath;
