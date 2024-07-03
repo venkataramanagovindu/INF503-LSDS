@@ -1,18 +1,32 @@
 #include "Queries_AR.h"
 
-Queries_AR::Queries_AR(/* args */)
+Queries_AR::Queries_AR()
 {
     totalGenomeLength = 0;
     QueriesCount = 0;
+    HumanGenome = nullptr;
+    QueriesArray = nullptr;
 }
 
-Queries_AR::Queries_AR(string filePath, string queriesFilePath){
+Queries_AR::Queries_AR(string filePath, string queriesFilePath)
+{
     FilePath = filePath;
     QueriesFilePath = queriesFilePath;
+    HumanGenome = nullptr;
+    QueriesArray = nullptr;
 }
 
 Queries_AR::~Queries_AR()
 {
+    delete[] HumanGenome;
+    if (QueriesArray)
+    {
+        for (long long int i = 0; i < QueriesCount; ++i)
+        {
+            delete[] QueriesArray[i];
+        }
+        delete[] QueriesArray;
+    }
 }
 
 void Queries_AR::ReadFile()
@@ -120,7 +134,7 @@ void Queries_AR::ReadQueriesFile()
     string line;
 
     while (getline(QueriesFile, line))
-    { // Read the file line by line
+    {
         ++lineCount;
     }
     QueriesFile.clear(); // Clear the EOF flag
@@ -147,10 +161,10 @@ void Queries_AR::ReadQueriesFile()
     }
 }
 
-void Queries_AR::SearchInGivenLength(long long int fargmentCount, int (Queries_AR::*searchMethod)(const char *))
+void Queries_AR::SearchInGivenLength(long long int fragmentCount, int (Queries_AR::*searchMethod)(const char *))
 {
     int numberOfFragmentsFound = 0;
-    for (long long int genomeindex = 0; genomeindex < fargmentCount - QUERIES_LENGTH + 1; genomeindex++)
+    for (long long int genomeindex = 0; genomeindex < fragmentCount - QUERIES_LENGTH + 1; genomeindex++)
     {
         char genomeFragment[QUERIES_LENGTH + 1];
 
@@ -160,7 +174,6 @@ void Queries_AR::SearchInGivenLength(long long int fargmentCount, int (Queries_A
         }
         genomeFragment[QUERIES_LENGTH] = '\0';
 
-        // cout << "at " << genomeindex << " " <<  genomeFragment << endl;
         if ((this->*searchMethod)(genomeFragment) == 1 && numberOfFragmentsFound < PRINT_FRAGMENTS)
         {
             cout << genomeFragment << " found at index " << genomeindex << endl;
@@ -171,7 +184,6 @@ void Queries_AR::SearchInGivenLength(long long int fargmentCount, int (Queries_A
 
 int Queries_AR::SearchInQuery(const char *subjectFragment)
 {
-    // cout << "Linear Search" << endl;
     for (long long int queriesIndex = 0; queriesIndex < QueriesCount; queriesIndex++)
     {
         if (strcmp(QueriesArray[queriesIndex], subjectFragment) == 0)
@@ -216,11 +228,9 @@ void Queries_AR::sort()
 
 void Queries_AR::QuickSort(char **arr, long long int start, long long int end)
 {
-    // cout << "Quick Sort 230" << endl;
     if (start < end)
     {
         long long int p = partition(arr, start, end);
-
         QuickSort(arr, start, p - 1);
         QuickSort(arr, p + 1, end);
     }

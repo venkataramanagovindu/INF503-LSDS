@@ -15,20 +15,19 @@ class Queries_AR
 {
 private:
     char *HumanGenome;
+    char **QueriesArray;
 
 public:
     long long int totalGenomeLength;
-    // TODO:: Move to private
-    char **QueriesArray;
-    Queries_AR(/* args */);
+    long long int QueriesCount;
+    Queries_AR();
     Queries_AR(string filePath, string queriesFilePath);
     ~Queries_AR();
     string FilePath;
     string QueriesFilePath;
-    long long int QueriesCount;
     void ReadFile();
     void ReadQueriesFile();
-    void SearchInGivenLength(long long int fargmentCount, int (Queries_AR::*searchMethod)(const char *));
+    void SearchInGivenLength(long long int fragmentCount, int (Queries_AR::*searchMethod)(const char *));
     int SearchInQuery(const char *sub);
     void sort();
     void QuickSort(char **arr, long long int start, long long int end);
