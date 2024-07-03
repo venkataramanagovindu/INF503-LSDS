@@ -28,12 +28,12 @@ public:
     long long int QueriesCount;
     void ReadFile();
     void ReadQueriesFile();
-    void SearchInGivenLength(long long int fargmentCount);
-    void Search();
-    int SearchInQuery(char* subjectFragment);
+    void SearchInGivenLength(long long int fargmentCount, int (Queries_AR::*searchMethod)(const char *));
+    int SearchInQuery(const char *sub);
     void sort();
-    void QuickSort(char** arr, long long int start, long long int end);
-    long long int partition(char** arr, long long int start, long long int end);
+    void QuickSort(char **arr, long long int start, long long int end);
+    long long int partition(char **arr, long long int start, long long int end);
+    int binarySearchInQuery(const char *target);
 };
 
 #endif

@@ -2,8 +2,8 @@
 
 Queries_AR::Queries_AR(/* args */)
 {
-            LengthsToSearch[0] = 5000;
-        LengthsToSearch[1] = 10000;
+    LengthsToSearch[0] = 5000;
+    LengthsToSearch[1] = 10000;
 }
 
 Queries_AR::~Queries_AR()
@@ -106,13 +106,6 @@ void Queries_AR::ReadFile()
 
     // Null-terminate the HumanGenome array
     HumanGenome[charArridx] = '\0';
-
-    // Output scaffold details
-    cout << "Scaffold Count: " << genomeScfCount << endl;
-    cout << "Longest Scaffold Name: " << longestScaffoldName << endl;
-    cout << "Longest Scaffold Length: " << longestScaffoldLength << endl;
-    cout << "Average Scaffold Length: " << (genomeScfCount > 0 ? totalGenomeLength / genomeScfCount : 0) << endl;
-    cout << "Total Scaffold Length: " << totalGenomeLength << endl;
 }
 
 void Queries_AR::ReadQueriesFile()
@@ -123,30 +116,19 @@ void Queries_AR::ReadQueriesFile()
 
     while (getline(QueriesFile, line))
     { // Read the file line by line
-        cout << line << endl;
         ++lineCount;
     }
-QueriesFile.clear(); // Clear the EOF flag
+    QueriesFile.clear(); // Clear the EOF flag
     QueriesFile.seekg(0, ios::beg);
 
-    lineCount = lineCount / 2;  
+    lineCount = lineCount / 2;
     QueriesArray = new char *[lineCount];
 
     QueriesCount = lineCount;
 
-// getline(QueriesFile, line);
-//         cout << line << endl;
-
-
-    // for(long long int rows = 0; rows < lineCount; rows++)
-    // {
-
-    // }
     long long int rowIndex = 0;
     while (getline(QueriesFile, line))
-    { // Read the file line by line
-        // ++lineCount;
-cout << line << endl; 
+    {
         if (line[0] != '>')
         {
             QueriesArray[rowIndex] = new char[QUERIES_LENGTH + 1];
@@ -156,96 +138,82 @@ cout << line << endl;
             }
             QueriesArray[rowIndex][QUERIES_LENGTH] = '\0';
             rowIndex++;
-            cout << "rowIndex " << rowIndex << endl;
-
-
-            // QueriesArray[rowIndex] = new char[QUERIES_LENGTH + 1];
-            // strcpy(QueriesArray[rowIndex], line.c_str());
-            // QueriesArray[rowIndex][QUERIES_LENGTH] = '\0';
-            // rowIndex++;
         }
     }
-
-    cout << "rowIndex " << rowIndex << endl;
-    cout << "lineCount " << lineCount << endl;
 }
 
-void Queries_AR:: Search()
+void Queries_AR::SearchInGivenLength(long long int fargmentCount, int (Queries_AR::*searchMethod)(const char *))
 {
-    cout << totalGenomeLength << endl;
-    for(int i = 0; i <  2; i++)
+    int numberOfFragmentsFound = 0;
+    for (long long int genomeindex = 0; genomeindex < fargmentCount - QUERIES_LENGTH + 1; genomeindex++)
     {
-        cout << "Searching in the first " << LengthsToSearch[i] << endl;
-        long long int fargmentCount = LengthsToSearch[i] < totalGenomeLength ? LengthsToSearch[i] : totalGenomeLength;
-
-            time_t start_t, end_t;
-            time(&start_t);
-
-            // Assess the genome
-            // reader->AssesGenome();
-
-        SearchInGivenLength(fargmentCount);
-            time(&end_t);
-
-
-            // Calculating total time taken by the program.
-            double time_taken = double(end_t - start_t);
-            cout << "Time taken to read the file : " << fixed
-                << time_taken;
-            cout << " sec " << endl;
-
-    }
-}
-
-
-void Queries_AR::SearchInGivenLength(long long int fargmentCount)
-{
-    for(long long int genomeindex = 0; genomeindex < fargmentCount - QUERIES_LENGTH + 1; genomeindex++)
-    {
-        int numberOfFragmentsFound = 0;
         char genomeFragment[QUERIES_LENGTH + 1];
 
-        for(int i = 0; i < QUERIES_LENGTH; i++)
+        for (int i = 0; i < QUERIES_LENGTH; i++)
         {
             genomeFragment[i] = HumanGenome[genomeindex + i];
         }
         genomeFragment[QUERIES_LENGTH] = '\0';
 
         // cout << "at " << genomeindex << " " <<  genomeFragment << endl;
-        if(SearchInQuery(genomeFragment) == 1 && numberOfFragmentsFound < PRINT_FRAGMENTS)
+        if ((this->*searchMethod)(genomeFragment) == 1 && numberOfFragmentsFound < PRINT_FRAGMENTS)
         {
-                cout << "found at " <<  genomeindex << " " << genomeFragment << endl;
+            cout << genomeFragment << " found at index " << genomeindex << endl;
+            numberOfFragmentsFound++;
         }
+    }
+}
 
+int Queries_AR::SearchInQuery(const char *subjectFragment)
+{
+    // cout << "Linear Search" << endl;
+    for (long long int queriesIndex = 0; queriesIndex < QueriesCount; queriesIndex++)
+    {
+        if (strcmp(QueriesArray[queriesIndex], subjectFragment) == 0)
+        {
+            return 1;
+        }
+    }
+    return -1;
+}
+
+int Queries_AR::binarySearchInQuery(const char *target)
+{
+    int left = 0;
+    int right = QueriesCount - 1;
+
+    while (left <= right)
+    {
+        int mid = left + (right - left) / 2;
+        int cmp = strcmp(QueriesArray[mid], target);
+
+        if (cmp == 0)
+        {
+            return 1; // Target found
+        }
+        else if (cmp < 0)
+        {
+            left = mid + 1;
+        }
+        else
+        {
+            right = mid - 1;
+        }
     }
 
-    // return -1;
+    return -1; // Target not found
 }
 
-int Queries_AR::SearchInQuery(char subjectFragment[])
+void Queries_AR::sort()
 {
-        for(long long int queriesIndex = 0; queriesIndex < QueriesCount; queriesIndex++)
-        {
-            if(strcmp(QueriesArray[queriesIndex], subjectFragment) == 0)
-            {
-                // cout << "found at " <<  genomeindex << " " << QueriesArray[queriesIndex] << endl;
-                // return genomeindex;
-                return 1;
-            }
-            // else
-            //     cout << "Not found " <<  genomeFragment << " " << QueriesArray[queriesIndex]  << endl;
-        }
-    return 0;
+    QuickSort(QueriesArray, 0, this->QueriesCount - 1);
 }
 
-void Queries_AR::sort() {
-    // cout << "Quick Sort 225" << endl;
-    QuickSort(QueriesArray, 0, this->QueriesCount - 1 );
-}
-
-void Queries_AR::QuickSort(char** arr, long long int start, long long int end) {
+void Queries_AR::QuickSort(char **arr, long long int start, long long int end)
+{
     // cout << "Quick Sort 230" << endl;
-    if (start < end) {
+    if (start < end)
+    {
         long long int p = partition(arr, start, end);
 
         QuickSort(arr, start, p - 1);
@@ -253,46 +221,25 @@ void Queries_AR::QuickSort(char** arr, long long int start, long long int end) {
     }
 }
 
-// long long int Queries_AR::partition(char** arr, long long int start, long long int end) {
-//     cout << "Quick Sort 240" << endl;
-//     cout << "start " << start << "end " << end << endl;
-//     char* pivot = arr[start];
-
-//     long long int i = start;
-//     long long int j = end;
-//     while (i < j) {
-//         while (strcmp(arr[i], pivot) <= 0) {
-//             i++;
-//         }
-//         while (strcmp(arr[j], pivot) > 0 ) {
-//             j--;
-//         }
-
-//         if (i < j) {
-//             swap(arr[i], arr[j]);
-//         }
-//     }
-//     swap(arr[start], arr[j]);
-//     return j;
-// }
-
-
-
-
-long long int Queries_AR::partition(char** arr, long long int start, long long int end) {
-    char* pivot = arr[start];
+long long int Queries_AR::partition(char **arr, long long int start, long long int end)
+{
+    char *pivot = arr[start];
     long long int i = start;
     long long int j = end;
 
-    while (i < j) {
-        while (i <= end && strcmp(arr[i], pivot) <= 0) {
+    while (i < j)
+    {
+        while (i <= end && strcmp(arr[i], pivot) <= 0)
+        {
             i++;
         }
-        while (j >= start && strcmp(arr[j], pivot) > 0) {
+        while (j >= start && strcmp(arr[j], pivot) > 0)
+        {
             j--;
         }
 
-        if (i < j) {
+        if (i < j)
+        {
             swap(arr[i], arr[j]);
         }
     }

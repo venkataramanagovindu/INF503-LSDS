@@ -4,10 +4,11 @@
 using namespace std;
 using namespace std::chrono;
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     // Check if a file path and sub-program were provided
-    if (argc < 4) {
+    if (argc < 4)
+    {
         cerr << "Usage: " << argv[0] << " <file_path> <sub_program>" << endl;
         return 1;
     }
@@ -15,116 +16,114 @@ int main(int argc, char** argv)
     // Retrieve file path and sub-program from command line arguments
     string filePath = argv[1];
     string queriesFilePath = argv[2];
-        // Convert third argument to long long int
-    char* endptr;
+    // Convert third argument to long long int
+    char *endptr;
     long long int LenthToSearch = strtoll(argv[3], &endptr, 10);
-    // string subProgram = argv[2];
 
-    // Create a Queries_AR object
-    Queries_AR* queriesReader = new Queries_AR();
+    string sortOrNot = argv[4];
 
-    cout << queriesReader << endl;
+    Queries_AR *queriesReader = new Queries_AR();
 
-    // Check if the sub-program is either "all" or "1"
-    // if(subProgram == "all" || subProgram == "1")
-    // {
-        // Set the file path for the reader
-        queriesReader->FilePath = filePath;
-        queriesReader->QueriesFilePath = queriesFilePath;
+    queriesReader->FilePath = filePath;
+    queriesReader->QueriesFilePath = queriesFilePath;
 
-        // Read the genome file
-        cout << "Reading the file" << endl << endl;
-        queriesReader->ReadFile();
-        queriesReader->ReadQueriesFile();
+    // Read the genome file
+    cout << "Reading the human genome file" << endl;
+    queriesReader->ReadFile();
+    cout << "Human genome reading completed" << endl
+         << endl;
+    cout << "Reading the queries file" << endl;
+    queriesReader->ReadQueriesFile();
+    cout << "Queries file reading completed" << endl
+         << endl;
 
-        cout << "Subject file reading completed" << endl;
 
-        cout << queriesReader->QueriesArray[0] << endl;
+
+    double time_taken = 0.0;
+
+    chrono::high_resolution_clock::time_point startTime;
+    chrono::high_resolution_clock::time_point endTime;
+    chrono::milliseconds duration;
+
+
+    long long int fragmentCount = LenthToSearch != 0 && LenthToSearch < queriesReader->totalGenomeLength ? LenthToSearch : queriesReader->totalGenomeLength;
+
+    if (strcmp(argv[4], "unsorted") == 0)
+    {
 
         cout << "Searching Started" << endl;
 
-        long long int fragmentCount = LenthToSearch < queriesReader->totalGenomeLength ? LenthToSearch : queriesReader->totalGenomeLength;
-
-        cout << "Total queriesReader->totalGenomeLength " << queriesReader->totalGenomeLength << endl; 
-
-        cout << "Searching first " << fragmentCount << endl;
-
-        // queriesReader->Search();
-
-                    time_t start_t, end_t;
-            time(&start_t);
-
-        queriesReader->SearchInGivenLength(fragmentCount);
-
-        time(&end_t);
-
-
-            // Calculating total time taken by the program.
-            double time_taken = double(end_t - start_t);
-            cout << "Time taken to read the file : " << fixed
-                << time_taken;
-            cout << " sec " << endl;
-
-        cout << "Searching Completed" << endl;
-
-        cout << "Before Sort" << endl;
-        for(int i = 0; i < 5;i++){
-            cout << queriesReader->QueriesArray[i] << endl;
+        if (LenthToSearch == 0)
+        {
+            cout << "Searching entire Subject Dataset " << endl;
         }
+        else
+        {
+
+            cout << "Searching first " << fragmentCount << endl;
+        }
+
+        startTime = chrono::high_resolution_clock::now();
+
+        queriesReader->SearchInGivenLength(fragmentCount, &Queries_AR::SearchInQuery);
+
+        endTime = chrono::high_resolution_clock::now();
+
+        // Calculating total time taken by the program.
+        duration = chrono::duration_cast<chrono::milliseconds>(endTime - startTime);
+
+        time_taken = duration.count() / 1000.0;
+
+        if (LenthToSearch == 0)
+        {
+            cout << "Time taken to search entire Subject Dataset : " << fixed << time_taken << " sec" << endl;
+        }
+        else
+        {
+            cout << "Time taken to search first " << fragmentCount << " : " << fixed << time_taken << " sec";
+        }
+    }
+
+    else if (strcmp(argv[4], "sorted") == 0)
+    {
+
+        cout << "Sorting the Query Dataset" << endl;
+
         queriesReader->sort();
 
+        cout << "Sorting Completed" << endl
+             << endl;
 
-                    
-
-
-        cout << "After Sort" << endl;
-                for(int i = 0; i < 5;i++){
-            cout << queriesReader->QueriesArray[i] << endl;
+             if (LenthToSearch == 0)
+        {
+            cout << "Searching entire Subject Dataset " << endl;
         }
-            time(&start_t);
+        else
+        {
 
-        queriesReader->SearchInGivenLength(fragmentCount);
+            cout << "Searching first " << fragmentCount << endl;
+        }
 
-        time(&end_t);
+        startTime = chrono::high_resolution_clock::now();
 
+        queriesReader->SearchInGivenLength(fragmentCount, &Queries_AR::binarySearchInQuery);
 
-            // Calculating total time taken by the program.
-            time_taken = double(end_t - start_t);
-            cout << "Time taken to read the file : " << fixed
-                << time_taken;
-            cout << " sec " << endl;
+        endTime = chrono::high_resolution_clock::now();
 
-        // queriesReader->Search();
+        duration = chrono::duration_cast<chrono::milliseconds>(endTime - startTime);
 
+        time_taken = duration.count() / 1000.0;
 
+        if (LenthToSearch == 0)
+        {
+            cout << "Time taken to search entire Subject Dataset : " << fixed << time_taken << " sec" << endl;
+        }
+        else
+        {
+            cout << "Time taken to search first " << fragmentCount << " : " << fixed << time_taken << " sec" << endl;
+        }
+    }
 
-
-        // If the sub-program is "all", assess the genome and measure the time taken
-        // if(subProgram == "all")
-        // {
-
-        //     time_t start_t, end_t;
-        //     time(&start_t);
-
-        //     // Assess the genome
-        //     reader->AssesGenome();
-
-        //     time(&end_t);
-
-        //     // Calculating total time taken by the program.
-        //     double time_taken = double(end_t - start_t);
-        //     cout << "Time taken to read the file : " << fixed
-        //         << time_taken;
-        //     cout << " sec " << endl;
-        // }
-    // }
-    // else
-    // {
-    //     // Inform the user if the sub-program argument is incorrect
-    //     cout << "Please enter the correct filepath and sub program to run" << endl;
-    // }
-
-    // Properly delete the dynamically allocated object
     delete queriesReader;
     return 0;
 }
