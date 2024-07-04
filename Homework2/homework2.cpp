@@ -1,4 +1,3 @@
-// Homework2.cpp
 #include <chrono>
 #include "Queries_AR.h"
 
@@ -8,9 +7,9 @@ using namespace std::chrono;
 int main(int argc, char **argv)
 {
     // Check if a file path and sub-program were provided
-    if (argc < 5)
+    if (argc < 4)
     {
-        cerr << "Usage: " << argv[0] << " <file_path> <queries_file_path> <length_to_search> <sorted/unsorted>" << endl;
+        cerr << "Usage: " << argv[0] << " <file_path> <queries_file_path> <length_to_search> <sorted|unsorted>" << endl;
         return 1;
     }
 
@@ -20,6 +19,11 @@ int main(int argc, char **argv)
     // Convert third argument to long long int
     char *endptr;
     long long int LengthToSearch = strtoll(argv[3], &endptr, 10);
+
+    if (*endptr != '\0') {
+        cerr << "Invalid number for length to search." << endl;
+        return 1;
+    }
 
     string sortOrNot = argv[4];
 
@@ -36,6 +40,7 @@ int main(int argc, char **argv)
          << endl;
 
     double time_taken = 0.0;
+
     chrono::high_resolution_clock::time_point startTime;
     chrono::high_resolution_clock::time_point endTime;
     chrono::milliseconds duration;
@@ -45,6 +50,7 @@ int main(int argc, char **argv)
     if (sortOrNot == "unsorted")
     {
         cout << "Searching Started" << endl;
+
         if (LengthToSearch == 0)
         {
             cout << "Searching entire Subject Dataset " << endl;
@@ -55,11 +61,14 @@ int main(int argc, char **argv)
         }
 
         startTime = chrono::high_resolution_clock::now();
+
         queriesReader->SearchInGivenLength(fragmentCount, &Queries_AR::SearchInQuery);
+
         endTime = chrono::high_resolution_clock::now();
 
         // Calculating total time taken by the program.
         duration = chrono::duration_cast<chrono::milliseconds>(endTime - startTime);
+
         time_taken = duration.count() / 1000.0;
 
         if (LengthToSearch == 0)
@@ -68,7 +77,7 @@ int main(int argc, char **argv)
         }
         else
         {
-            cout << "Time taken to search first " << fragmentCount << " fragments: " << time_taken << " sec" << endl;
+            cout << "Time taken to search first " << fragmentCount << " : " << time_taken << " sec" << endl;
         }
     }
     else if (sortOrNot == "sorted")
@@ -88,19 +97,22 @@ int main(int argc, char **argv)
         }
 
         startTime = chrono::high_resolution_clock::now();
+
         queriesReader->SearchInGivenLength(fragmentCount, &Queries_AR::binarySearchInQuery);
+
         endTime = chrono::high_resolution_clock::now();
 
         duration = chrono::duration_cast<chrono::milliseconds>(endTime - startTime);
+
         time_taken = duration.count() / 1000.0;
 
         if (LengthToSearch == 0)
         {
-            cout << "Time taken to search entire Subject Dataset : " << time_taken << " sec" << endl;
+            cout << "Time taken to search entire Subject Dataset : " << fixed << time_taken << " sec" << endl;
         }
         else
         {
-            cout << "Time taken to search first " << fragmentCount << " fragments: " << time_taken << " sec" << endl;
+            cout << "Time taken to search first " << fragmentCount << " : " << fixed << time_taken << " sec" << endl;
         }
     }
 

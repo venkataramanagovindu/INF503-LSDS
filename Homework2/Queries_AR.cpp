@@ -12,6 +12,8 @@ Queries_AR::Queries_AR(string filePath, string queriesFilePath)
 {
     FilePath = filePath;
     QueriesFilePath = queriesFilePath;
+    totalGenomeLength = 0;
+    QueriesCount = 0;
     HumanGenome = nullptr;
     QueriesArray = nullptr;
 }
@@ -19,25 +21,21 @@ Queries_AR::Queries_AR(string filePath, string queriesFilePath)
 Queries_AR::~Queries_AR()
 {
     delete[] HumanGenome;
-    if (QueriesArray)
+    for (long long int i = 0; i < QueriesCount; i++)
     {
-        for (long long int i = 0; i < QueriesCount; ++i)
-        {
-            delete[] QueriesArray[i];
-        }
-        delete[] QueriesArray;
+        delete[] QueriesArray[i];
     }
+    delete[] QueriesArray;
 }
 
 void Queries_AR::ReadFile()
 {
     bool isGenomeHeader = false;
-    long genomeLength = 0;                                                                     // Length of the current genome sequence
-    char longestScaffoldName[SCAFFOLD_HEADER_LENGTH], headerCharArray[SCAFFOLD_HEADER_LENGTH]; // Buffers for scaffold names and headers
+    long genomeLength = 0;
+    char longestScaffoldName[SCAFFOLD_HEADER_LENGTH], headerCharArray[SCAFFOLD_HEADER_LENGTH];
     long int genomeScfCount = 0, longestScaffoldLength = 0, headerCharidx = 0;
-    char ch = ' '; // Character buffer for reading the file
+    char ch = ' ';
 
-    // Open the file
     ifstream inputFile(FilePath, ios::binary);
 
     if (!inputFile.is_open())
@@ -46,12 +44,10 @@ void Queries_AR::ReadFile()
         return;
     }
 
-    // Determine the size of the file
     inputFile.seekg(0, ios::end);
     long long int fileSize = inputFile.tellg();
     inputFile.seekg(0, ios::beg);
 
-    // Allocate memory for the HumanGenome array
     HumanGenome = new char[fileSize + 1];
 
     if (HumanGenome == nullptr)
@@ -61,19 +57,16 @@ void Queries_AR::ReadFile()
         return;
     }
 
-    long long int charArridx = 0; // Index for HumanGenome array
+    long long int charArridx = 0;
 
-    // Read characters into the HumanGenome array
     for (long long int i = 0; i < fileSize; ++i)
     {
         ch = inputFile.get();
 
-        // Check for header line starting with '>'
         if (ch == '>')
         {
             isGenomeHeader = true;
 
-            // Update longest scaffold details if current genome length is greater
             if (genomeLength > 0)
             {
                 if (genomeLength > longestScaffoldLength)
@@ -87,7 +80,6 @@ void Queries_AR::ReadFile()
             }
         }
 
-        // If currently reading a header
         if (isGenomeHeader)
         {
             if (ch == '\n')
@@ -97,14 +89,13 @@ void Queries_AR::ReadFile()
                 headerCharArray[headerCharidx] = '\0';
                 headerCharidx = 0;
             }
-            else if (ch != '>' && headerCharidx < 14) // Prevent buffer overflow
+            else if (ch != '>' && headerCharidx < 14)
             {
                 headerCharArray[headerCharidx++] = ch;
             }
         }
         else if (ch != '\n')
         {
-            // Read genome data into HumanGenome array
             if (charArridx < fileSize)
             {
                 HumanGenome[charArridx++] = ch;
@@ -123,13 +114,12 @@ void Queries_AR::ReadFile()
         longestScaffoldName[14] = '\0';
     }
 
-    // Null-terminate the HumanGenome array
     HumanGenome[charArridx] = '\0';
 }
 
 void Queries_AR::ReadQueriesFile()
 {
-    ifstream QueriesFile(QueriesFilePath); // Open the file
+    ifstream QueriesFile(QueriesFilePath);
     long long int lineCount = 0;
     string line;
 
@@ -137,11 +127,16 @@ void Queries_AR::ReadQueriesFile()
     {
         ++lineCount;
     }
-    QueriesFile.clear(); // Clear the EOF flag
+    QueriesFile.clear();
     QueriesFile.seekg(0, ios::beg);
 
     lineCount = lineCount / 2;
     QueriesArray = new char *[lineCount];
+
+    if (QueriesArray == nullptr) {
+        cerr << "Failed to allocate memory for QueriesArray." << endl;
+        return;
+    }
 
     QueriesCount = lineCount;
 
@@ -151,6 +146,10 @@ void Queries_AR::ReadQueriesFile()
         if (line[0] != '>')
         {
             QueriesArray[rowIndex] = new char[QUERIES_LENGTH + 1];
+            if (QueriesArray[rowIndex] == nullptr) {
+                cerr << "Failed to allocate memory for QueriesArray row." << endl;
+                return;
+            }
             for (int queryChar = 0; queryChar < QUERIES_LENGTH; queryChar++)
             {
                 QueriesArray[rowIndex][queryChar] = line[queryChar];
@@ -182,16 +181,44 @@ void Queries_AR::SearchInGivenLength(long long int fragmentCount, int (Queries_A
     }
 }
 
+// int Queries_AR::SearchInQuery(const char *subjectFragment)
+// {
+//     for (long long int queriesIndex = 0; queriesIndex < QueriesCount; queriesIndex++)
+//     {
+//         if (strcmp(QueriesArray[queriesIndex], subjectFragment) == 0)
+//         {
+//             return 1;
+//         }
+//     }
+//     return -1;
+// }
+
 int Queries_AR::SearchInQuery(const char *subjectFragment)
 {
     for (long long int queriesIndex = 0; queriesIndex < QueriesCount; queriesIndex++)
     {
-        if (strcmp(QueriesArray[queriesIndex], subjectFragment) == 0)
+        if (stringCompare(subjectFragment, QueriesArray[queriesIndex]) == 0)
         {
             return 1;
         }
     }
     return -1;
+}
+
+int Queries_AR::stringCompare(const char *sub, const char *query)
+{
+    for (int i = 0; i < QUERIES_LENGTH; i++)
+    {
+        if (sub[i] < query[i])
+        {
+            return -1;
+        }
+        else if (sub[i] > query[i])
+        {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 int Queries_AR::binarySearchInQuery(const char *target)
@@ -206,7 +233,7 @@ int Queries_AR::binarySearchInQuery(const char *target)
 
         if (cmp == 0)
         {
-            return 1; // Target found
+            return 1;
         }
         else if (cmp < 0)
         {
@@ -218,12 +245,12 @@ int Queries_AR::binarySearchInQuery(const char *target)
         }
     }
 
-    return -1; // Target not found
+    return -1;
 }
 
 void Queries_AR::sort()
 {
-    QuickSort(QueriesArray, 0, this->QueriesCount - 1);
+    QuickSort(QueriesArray, 0, QueriesCount - 1);
 }
 
 void Queries_AR::QuickSort(char **arr, long long int start, long long int end)

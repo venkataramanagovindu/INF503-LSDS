@@ -1,5 +1,5 @@
-#ifndef HUMANGENOMEREADER_H
-#define HUMANGENOMEREADER_H
+#ifndef QUERIES_AR_H
+#define QUERIES_AR_H
 
 #include <cstring>
 #include <iostream>
@@ -16,15 +16,15 @@ class Queries_AR
 private:
     char *HumanGenome;
     char **QueriesArray;
+    long long int QueriesCount;
+    string FilePath;
+    string QueriesFilePath;
 
 public:
     long long int totalGenomeLength;
-    long long int QueriesCount;
     Queries_AR();
     Queries_AR(string filePath, string queriesFilePath);
     ~Queries_AR();
-    string FilePath;
-    string QueriesFilePath;
     void ReadFile();
     void ReadQueriesFile();
     void SearchInGivenLength(long long int fragmentCount, int (Queries_AR::*searchMethod)(const char *));
@@ -33,6 +33,7 @@ public:
     void QuickSort(char **arr, long long int start, long long int end);
     long long int partition(char **arr, long long int start, long long int end);
     int binarySearchInQuery(const char *target);
+    int stringCompare(const char *sub, const char *query);
 };
 
 #endif
