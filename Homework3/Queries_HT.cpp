@@ -17,10 +17,29 @@ Queries_HT::Queries_HT(long long int size) {
 		HashTable[index] = NULL;
 }
 
+// Parameterized constructor for Queries_AR
+Queries_HT::Queries_HT(string filePath, string queriesFilePath, long long int size)
+{
+    FilePath = filePath;
+    QueriesFilePath = queriesFilePath;
+    totalGenomeLength = 0;
+    // QueriesCount = 0;
+    HumanGenome = nullptr;
+    // QueriesArray = nullptr;
+
+
+    	HashTable = new Node*[size];
+    m = size;
+
+	for (long long int index = 0; index < size; index++)
+		HashTable[index] = NULL;
+}
+
+
 long long int Queries_HT::getRadixHash(string key) {
 	int value = 0, base = 5;
-    int queryFragmentSize = 16;
-    long long int radix = 0;
+    int queryFragmentSize = 32;
+    unsigned long long int radix = 0;
 
 	for (int i = 0; i < queryFragmentSize; i++) {
 		switch (key[i]) {
@@ -40,12 +59,17 @@ long long int Queries_HT::getRadixHash(string key) {
             value = 4;
 			break;
 		}
-		radix += value * pow(base, (queryFragmentSize - i - 1));
+
+        // cout << (queryFragmentSize - i - 1) / 2 << endl;
+		radix += value * pow(base, ((queryFragmentSize - i - 1) / 2));
+        // cout << "each radix " << radix << endl;
 	}
+    // cout << "radix " << radix << endl;
 	return radix % m;
 }
 
-void Queries_HT::readFragments(string fragmentFilePath) {
+void Queries_HT::readFragments() {
+    cout << endl;
     long long int queriesLineCount = 0;
     string line;
 
@@ -56,25 +80,32 @@ void Queries_HT::readFragments(string fragmentFilePath) {
     std::ios_base::sync_with_stdio(false);
 
     /* Creating input filestream */
-    ifstream file(fragmentFilePath);
+    ifstream file(QueriesFilePath);
     while (getline(file, line))
         queriesLineCount++;
+
+    cout << "queriesLineCount" << endl;
+    cout << queriesLineCount << endl;
 
     file.close();
 
     /* Creating input filestream */
-    ifstream fin(fragmentFilePath);
+    ifstream fin(QueriesFilePath);
 
     char c;
 
     int genomeQueryIdx = 0;
+    char* char_array;
     for (long long int i = 0; i < queriesLineCount; i++)
     {
         getline(fin, line);
         if (i % 2 == 0)
             continue;
 
+        cout << line << endl;
         long long int index = this->getRadixHash(line);
+
+        cout << line << " " << index << endl;
 
         if (this->HashTable[index] != NULL) {
             this->numberOfCollisions++;
@@ -91,13 +122,18 @@ void Queries_HT::readFragments(string fragmentFilePath) {
         //else
         //{
 
-        char* char_array = new char[17];
+        char_array = new char[33];
         strcpy(char_array, line.c_str());
-        char_array[16] = '\0';
+        char_array[32] = '\0';
+
+        
 
 
             Node* newNode = new Node;
             newNode->data = char_array;
+            // cout << "134 char_array    " << char_array << endl;
+            // cout << "135 newNode->data " << newNode->data << endl;
+
             newNode->Next = this->HashTable[index];
             this->HashTable[index] = newNode;
         //}
@@ -121,65 +157,171 @@ void Queries_HT::readFragments(string fragmentFilePath) {
     cout << "Numbers of lines in the file : " << queriesLineCount << endl;
 }
 
-void Queries_HT::readHumanGenomes(string genomeFilePath) {
-    // read file char by char
-    char ch;
-    fstream fin(genomeFilePath, fstream::in);
-    char* headerCharArray;
+// Method to read the human genome file
+void Queries_HT::ReadFile()
+{
+    bool isGenomeHeader = false;
+    long genomeLength = 0;
+    char longestScaffoldName[SCAFFOLD_HEADER_LENGTH], headerCharArray[SCAFFOLD_HEADER_LENGTH];
+    long int genomeScfCount = 0, longestScaffoldLength = 0, headerCharidx = 0;
+    char ch = ' ';
 
-    /* Time function returns the time since the
-    Epoch(jan 1 1970). Returned time is in seconds. */
-    time_t start, end;
-    std::time(&start);
-    std::ios_base::sync_with_stdio(false);
+    ifstream inputFile(FilePath, ios::binary);
 
-    // Calculating the size of the file
-    fin.seekg(0, std::ios::end);
-    long long size = fin.tellg();
-    fin.seekg(0, std::ios::beg);
+    // Check if the file opened successfully
+    if (!inputFile.is_open())
+    {
+        cerr << "Failed to open the file." << endl;
+        return;
+    }
 
-    // Dynamically allocating memory for the array
-    genomeArray = new char[size];
-    bool isHeader = false;
+    // Determine the size of the file
+    inputFile.seekg(0, ios::end);
+    long long int fileSize = inputFile.tellg();
+    inputFile.seekg(0, ios::beg);
+
+    // Allocate memory for HumanGenome
+    HumanGenome = new char[fileSize + 1];
+
+    if (HumanGenome == nullptr)
+    {
+        cerr << "Failed to allocate memory for HumanGenome." << endl;
+        inputFile.close();
+        return;
+    }
+
     long long int charArridx = 0;
-    long long int headerCharidx = 0;
-    //long long int genomeLength = 0;
 
-    while (fin >> noskipws >> ch) {
+    // Read the file character by character
+    for (long long int i = 0; i < fileSize; ++i)
+    {
+        ch = inputFile.get();
 
-        // 62 = >
-        if (ch == 62) {
-            isHeader = true;
+        // If a header line is found, process it
+        if (ch == '>')
+        {
+            isGenomeHeader = true;
 
-            /*totalGenomeLength += genomeLength;
-            genomeLength = 0;*/
-        }
-
-        if (isHeader) {
-            if (ch == 10) {
-                isHeader = false;
+            // Update the longest scaffold information if needed
+            if (genomeLength > 0)
+            {
+                if (genomeLength > longestScaffoldLength)
+                {
+                    longestScaffoldLength = genomeLength;
+                    strcpy(longestScaffoldName, headerCharArray);
+                    longestScaffoldName[14] = '\0';
+                }
+                totalGenomeLength += genomeLength;
+                genomeLength = 0;
             }
         }
-        else if (ch != 10)
+
+        // Process the header line
+        if (isGenomeHeader)
         {
-            genomeArray[charArridx++] = ch;
-            totalGenomeLength++;
+            if (ch == '\n')
+            {
+                isGenomeHeader = false;
+                ++genomeScfCount;
+                headerCharArray[headerCharidx] = '\0';
+                headerCharidx = 0;
+            }
+            else if (ch != '>' && headerCharidx < 14)
+            {
+                headerCharArray[headerCharidx++] = ch;
+            }
+        }
+        else if (ch != '\n')
+        {
+            if (charArridx < fileSize)
+            {
+                HumanGenome[charArridx++] = ch;
+                genomeLength++;
+            }
         }
     }
-    fin.close();
 
-    genomeArray[charArridx] = '\0';
+    inputFile.close();
+    totalGenomeLength += genomeLength;
 
-    std::ios_base::sync_with_stdio(false);
-    time(&end);
+    // Update the longest scaffold information if needed
+    if (genomeLength > longestScaffoldLength)
+    {
+        longestScaffoldLength = genomeLength;
+        strcpy(longestScaffoldName, headerCharArray);
+        longestScaffoldName[14] = '\0';
+    }
 
-    // Calculating total time taken by the program.
-    double time_taken = double(end - start);
-    cout << "Human Genome Count " << totalGenomeLength << endl;
-    cout << "Time taken to read the genome file : " << fixed
-        << time_taken;
-    cout << " sec " << endl;
+    HumanGenome[charArridx] = '\0';
+
+    int s = 0;
+    while(HumanGenome[s] != '\0')
+    {
+        cout << HumanGenome[s];
+        s++;
+    }
 }
+
+
+// void Queries_HT::readHumanGenomes(string genomeFilePath) {
+//     // read file char by char
+//     char ch;
+//     fstream fin(genomeFilePath, fstream::in);
+//     char* headerCharArray;
+
+//     /* Time function returns the time since the
+//     Epoch(jan 1 1970). Returned time is in seconds. */
+//     time_t start, end;
+//     std::time(&start);
+//     std::ios_base::sync_with_stdio(false);
+
+//     // Calculating the size of the file
+//     fin.seekg(0, std::ios::end);
+//     long long size = fin.tellg();
+//     fin.seekg(0, std::ios::beg);
+
+//     // Dynamically allocating memory for the array
+//     HumanGenome = new char[size];
+//     bool isHeader = false;
+//     long long int charArridx = 0;
+//     long long int headerCharidx = 0;
+//     //long long int genomeLength = 0;
+
+//     while (fin >> noskipws >> ch) {
+
+//         // 62 = >
+//         if (ch == 62) {
+//             isHeader = true;
+
+//             /*totalGenomeLength += genomeLength;
+//             genomeLength = 0;*/
+//         }
+
+//         if (isHeader) {
+//             if (ch == 10) {
+//                 isHeader = false;
+//             }
+//         }
+//         else if (ch != 10)
+//         {
+//             HumanGenome[charArridx++] = ch;
+//             totalGenomeLength++;
+//         }
+//     }
+//     fin.close();
+
+//     HumanGenome[charArridx] = '\0';
+
+//     std::ios_base::sync_with_stdio(false);
+//     time(&end);
+
+//     // Calculating total time taken by the program.
+//     double time_taken = double(end - start);
+//     cout << "Human Genome Count " << totalGenomeLength << endl;
+//     cout << "Time taken to read the genome file : " << fixed
+//         << time_taken;
+//     cout << " sec " << endl;
+// }
 
 void Queries_HT::print() {
     cout << "numberOfCollisions " << this->numberOfCollisions<< endl;
@@ -197,17 +339,38 @@ void Queries_HT::print() {
     //}
 }
 
+void Queries_HT::printHashTable()
+{
+    for(int i = 0; i < 10; i++)
+    {
+        if(HashTable[i] != NULL)
+        {
+            Node* node = this->HashTable[i];
+
+            cout << "at " << i << endl;
+            while (node != NULL)
+            {
+                cout << node->data << endl;
+                node = node->Next;
+            }
+            
+        }
+    }
+}
+
 void Queries_HT::search() {
-    char substr[17];
+    char substr[32];
     int searchPrintCount = 0;
     for (long long int i = 0; i <= this->totalGenomeLength - this->fragmentLength; i++)
     {
-        strncpy(substr, this->genomeArray + i, this->fragmentLength);
+        strncpy(substr, this->HumanGenome + i, this->fragmentLength);
         substr[fragmentLength] = '\0';
 
         //this->findIndex(substr);
 
         long long int radixIndex = this->getRadixHash(substr);
+
+        // cout << substr << "  " << radixIndex << " " << this->HashTable[radixIndex] << endl;
 
         if (this->HashTable[radixIndex] != NULL) {
             Node* node = this->HashTable[radixIndex];
@@ -243,7 +406,7 @@ void Queries_HT::search() {
                 {
                     //cout << node->data.compare(substr) << endl;
                     if (searchPrintCount++ < 10)
-                        cout << node->data << endl;
+                        cout << node->data << " at " << i << endl;
 
                     this->numberOfHits++;
                 }
@@ -254,6 +417,10 @@ void Queries_HT::search() {
     }
 
     cout << "numberOfHits " << this->numberOfHits << endl;
+    
+    cout << "Search Completed " << endl;
+
+
 }
 
 long long int Queries_HT::findIndex(string subStr) {

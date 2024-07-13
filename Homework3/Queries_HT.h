@@ -1,16 +1,26 @@
 
+#ifndef QUERIES_HT_H
+#define QUERIES_HT_H
+
 #include <string>
 using namespace std;
+
+const int SCAFFOLD_HEADER_LENGTH = 15;
+const int QUERIES_LENGTH = 32;
+const int PRINT_FRAGMENTS = 15;
 
 class Queries_HT
 {
 	private:
-		char* genomeArray;
+		// char* genomeArray;
+            char *HumanGenome;
 		long long int totalGenomeLength = 0;
 		long long int m = 0;
 		long long int numberOfCollisions = 0;
-		int fragmentLength = 16;
+		int fragmentLength = 32;
 		long long int numberOfHits = 0;
+        string FilePath;
+        string QueriesFilePath;
 
 	public:
 		struct Node {
@@ -20,14 +30,24 @@ class Queries_HT
 
 		Node** HashTable;	
 		Queries_HT(long long int size);
+        Queries_HT(string filePath, string queriesFilePath, long long int size);
+
 		long long int getRadixHash(string key);
-		void readFragments(string fragmentFilePath);
-		void readHumanGenomes(string genomeFilePath);
+		void readFragments();
+        void ReadFile();
+
+        
+
+		// void readHumanGenomes(string genomeFilePath);
 		void print();
 		void insert(string key);
 		void search();
+        void printHashTable();
 		long long int findIndex(string subStr);
 		~Queries_HT();
 };
+
+#endif
+
 
  
