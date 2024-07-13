@@ -102,10 +102,10 @@ void Queries_HT::readFragments() {
         if (i % 2 == 0)
             continue;
 
-        cout << line << endl;
+        // cout << line << endl;
         long long int index = this->getRadixHash(line);
 
-        cout << line << " " << index << endl;
+        // cout << line << " " << index << endl;
 
         if (this->HashTable[index] != NULL) {
             this->numberOfCollisions++;
@@ -253,90 +253,11 @@ void Queries_HT::ReadFile()
     }
 
     HumanGenome[charArridx] = '\0';
-
-    int s = 0;
-    while(HumanGenome[s] != '\0')
-    {
-        cout << HumanGenome[s];
-        s++;
-    }
 }
 
 
-// void Queries_HT::readHumanGenomes(string genomeFilePath) {
-//     // read file char by char
-//     char ch;
-//     fstream fin(genomeFilePath, fstream::in);
-//     char* headerCharArray;
-
-//     /* Time function returns the time since the
-//     Epoch(jan 1 1970). Returned time is in seconds. */
-//     time_t start, end;
-//     std::time(&start);
-//     std::ios_base::sync_with_stdio(false);
-
-//     // Calculating the size of the file
-//     fin.seekg(0, std::ios::end);
-//     long long size = fin.tellg();
-//     fin.seekg(0, std::ios::beg);
-
-//     // Dynamically allocating memory for the array
-//     HumanGenome = new char[size];
-//     bool isHeader = false;
-//     long long int charArridx = 0;
-//     long long int headerCharidx = 0;
-//     //long long int genomeLength = 0;
-
-//     while (fin >> noskipws >> ch) {
-
-//         // 62 = >
-//         if (ch == 62) {
-//             isHeader = true;
-
-//             /*totalGenomeLength += genomeLength;
-//             genomeLength = 0;*/
-//         }
-
-//         if (isHeader) {
-//             if (ch == 10) {
-//                 isHeader = false;
-//             }
-//         }
-//         else if (ch != 10)
-//         {
-//             HumanGenome[charArridx++] = ch;
-//             totalGenomeLength++;
-//         }
-//     }
-//     fin.close();
-
-//     HumanGenome[charArridx] = '\0';
-
-//     std::ios_base::sync_with_stdio(false);
-//     time(&end);
-
-//     // Calculating total time taken by the program.
-//     double time_taken = double(end - start);
-//     cout << "Human Genome Count " << totalGenomeLength << endl;
-//     cout << "Time taken to read the genome file : " << fixed
-//         << time_taken;
-//     cout << " sec " << endl;
-// }
-
 void Queries_HT::print() {
     cout << "numberOfCollisions " << this->numberOfCollisions<< endl;
-    //for (int i = 0; i < 1; i++)
-    //{
-    //    if (this->HashTable[i] != NULL) {
-    //        //cout << this->HashTable[i]->data << endl;
-    //        Node *node = this->HashTable[i];
-    //        while (node != NULL)
-    //        {
-    //            cout << node->data << endl;
-    //            node = node->Next;
-    //        }       
-    //    }
-    //}
 }
 
 void Queries_HT::printHashTable()

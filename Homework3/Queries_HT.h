@@ -3,6 +3,7 @@
 #define QUERIES_HT_H
 
 #include <string>
+#include <stdio.h>
 using namespace std;
 
 const int SCAFFOLD_HEADER_LENGTH = 15;
@@ -36,7 +37,7 @@ class Queries_HT
 		void readFragments();
         void ReadFile();
 
-        
+
 
 		// void readHumanGenomes(string genomeFilePath);
 		void print();
