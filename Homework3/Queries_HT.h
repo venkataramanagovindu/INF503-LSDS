@@ -3,7 +3,7 @@
 #define QUERIES_HT_H
 
 #include <string>
-#include <stdio.h>
+#include <math.h>
 using namespace std;
 
 const int SCAFFOLD_HEADER_LENGTH = 15;

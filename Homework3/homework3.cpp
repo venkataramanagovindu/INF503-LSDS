@@ -32,17 +32,30 @@ int main(int argc, char **argv)
     // cout << s1.compare(s2) << endl;
 
 
+    cout << "Human Genome Reading started" <<  endl;
     HT->ReadFile();
+    cout << "Human Genome Reading completed" <<  endl;
 
+
+    cout << "Fragments Reading started" <<  endl;
 
     HT->readFragments();
 
-    cout << "Printing hashtable  " << endl << endl; 
+    cout << "Fragments Reading completed" <<  endl;
+
+
+    // cout << "Printing hashtable  " << endl << endl; 
     // HT->printHashTable();
     // HT->readHumanGenomes("human_small.txt");
 
+
     HT->print();
+
+        cout << "Searching started" <<  endl;
+
     HT->search();
+
+        cout << "Searching completed" <<  endl;
 
     cout << "Main Completed" << endl;
     return 1;
