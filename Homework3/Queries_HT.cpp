@@ -41,10 +41,9 @@ Queries_HT::~Queries_HT() {
 
 long long int Queries_HT::getRadixHash(string key) {
     int value = 0, base = 5;
-    int queryFragmentSize = FRAGMENT_LENGTH;
     unsigned long long int radix = 0;
 
-    for (int i = 0; i < queryFragmentSize; i++) {
+    for (int i = 0; i < FRAGMENT_LENGTH; i++) {
         switch (key[i]) {
             case 'A':
                 value = 0;
@@ -62,7 +61,7 @@ long long int Queries_HT::getRadixHash(string key) {
                 value = 4;
                 break;
         }
-        radix += value * pow(base, ((queryFragmentSize - i - 1) / 2));
+        radix += value * pow(base, ((FRAGMENT_LENGTH - i - 1) / 2));
     }
     return radix % m;
 }
@@ -71,19 +70,13 @@ void Queries_HT::readFragments() {
     long long int queriesLineCount = 0;
     string line;
 
-    time_t start, end;
-    std::time(&start);
-    std::ios_base::sync_with_stdio(false);
-
     ifstream file(QueriesFilePath);
     while (getline(file, line))
         queriesLineCount++;
 
-    cout << "queriesLineCount: " << queriesLineCount << endl;
     file.close();
 
     ifstream fin(QueriesFilePath);
-    // char c;
     char* char_array;
 
     for (long long int i = 0; i < queriesLineCount; i++) {
@@ -105,11 +98,6 @@ void Queries_HT::readFragments() {
         newNode->Next = HashTable[index];
         HashTable[index] = newNode;
     }
-
-    time(&end);
-    double time_taken = double(end - start);
-    cout << "Time taken to read the queries file: " << fixed << time_taken << " sec" << endl;
-    cout << "Number of lines in the file: " << queriesLineCount << endl;
 }
 
 // Method to read the human genome file
@@ -183,48 +171,44 @@ void Queries_HT::ReadFile() {
     HumanGenome[charArridx] = '\0';
 }
 
-void Queries_HT::print() {
-    cout << "numberOfCollisions: " << numberOfCollisions << endl;
-}
+void Queries_HT::searchFragments() {
+    char subjectFragment[FRAGMENT_LENGTH + 1];
+    long long int searchPrintCount = 0;
 
-void Queries_HT::printHashTable() {
-    for (int i = 0; i < 10; i++) {
-        if (HashTable[i] != NULL) {
-            Node* temp = HashTable[i];
-            cout << "Index " << i << ":\n";
-            while (temp != NULL) {
-                cout << " -> " << temp->data;
-                temp = temp->Next;
-            }
-            cout << endl;
-        }
-    }
-}
+    for (long long int i = 0; i < totalGenomeLength - FRAGMENT_LENGTH + 1; i++) {
+        strncpy(subjectFragment, HumanGenome + i, FRAGMENT_LENGTH);
+        subjectFragment[FRAGMENT_LENGTH] = '\0';
 
-void Queries_HT::search() {
-    char substr[FRAGMENT_LENGTH + 1];
-    int searchPrintCount = 0;
-    for (long long int i = 0; i <= totalGenomeLength - FRAGMENT_LENGTH; i++) {
-        strncpy(substr, HumanGenome + i, FRAGMENT_LENGTH);
-        substr[FRAGMENT_LENGTH] = '\0';
-
-        long long int radixIndex = getRadixHash(substr);
+        long long int radixIndex = getRadixHash(subjectFragment);
+        // cout << "at " << radixIndex << endl; // Added missing semicolon here
 
         if (HashTable[radixIndex] != NULL) {
-            Node* node = HashTable[radixIndex];
-            while (node != NULL) {
-                if (strcmp(substr, node->data) == 0) {
-                    if (searchPrintCount++ < 10)
-                        cout << node->data << " at " << i << endl;
 
+
+            Node* node = searchLinkedList(radixIndex, subjectFragment);
+
+            if(node != NULL)
+            {
+                if (searchPrintCount < 10) { // Simplified condition
+                        cout << node->data << " at " << i << endl;
+                    }
+                    searchPrintCount++;
                     numberOfHits++;
-                    break;
-                }
-                node = node->Next;
             }
         }
     }
+}
 
-    cout << "numberOfHits: " << numberOfHits << endl;
-    cout << "Search Completed" << endl;
+Queries_HT::Node* Queries_HT::searchLinkedList(long long int radixIndex, char* substr)
+{
+    if (HashTable[radixIndex] != nullptr) {
+        Node* node = HashTable[radixIndex];
+        while (node != nullptr) {
+            if (strcmp(substr, node->data) == 0) {
+                return node;  // Return the node if found
+            }
+            node = node->Next;
+        }
+    }
+    return nullptr;
 }
