@@ -1,54 +1,46 @@
-
 #ifndef QUERIES_HT_H
 #define QUERIES_HT_H
 
 #include <string>
-#include <math.h>
-using namespace std;
+#include <cstring>
+#include <iostream>
+#include <fstream>
+#include <ctime>
+#include <cmath>
 
-const int SCAFFOLD_HEADER_LENGTH = 15;
-const int QUERIES_LENGTH = 32;
-const int PRINT_FRAGMENTS = 15;
+#define FRAGMENT_LENGTH 32
+#define SCAFFOLD_HEADER_LENGTH 100
+
+using namespace std;
 
 class Queries_HT
 {
-	private:
-		// char* genomeArray;
-            char *HumanGenome;
-		long long int totalGenomeLength = 0;
-		long long int m = 0;
-		long long int numberOfCollisions = 0;
-		int fragmentLength = 32;
-		long long int numberOfHits = 0;
-        string FilePath;
-        string QueriesFilePath;
+private:
+    struct Node {
+        char *data;
+        Node *Next;
+    };
 
-	public:
-		struct Node {
-			char *data;
-			Node *Next;
-		};
+    Node **HashTable;
+    char *HumanGenome;
+    long long int totalGenomeLength;
+    long long int m;
+    long long int numberOfCollisions;
+    long long int numberOfHits;
+    string FilePath;
+    string QueriesFilePath;
 
-		Node** HashTable;	
-		Queries_HT(long long int size);
-        Queries_HT(string filePath, string queriesFilePath, long long int size);
+public:
+    Queries_HT(long long int size);
+    Queries_HT(string filePath, string queriesFilePath, long long int size);
+    ~Queries_HT();
 
-		long long int getRadixHash(string key);
-		void readFragments();
-        void ReadFile();
-
-
-
-		// void readHumanGenomes(string genomeFilePath);
-		void print();
-		void insert(string key);
-		void search();
-        void printHashTable();
-		long long int findIndex(string subStr);
-		~Queries_HT();
+    long long int getRadixHash(string key);
+    void readFragments();
+    void ReadFile();
+    void print();
+    void printHashTable();
+    void search();
 };
 
-#endif
-
-
- 
+#endif // QUERIES_HT_H
