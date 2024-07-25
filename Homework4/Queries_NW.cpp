@@ -9,16 +9,10 @@ using namespace std;
 Queries_NW::Queries_NW() {
     HumanGenome = NULL;
     QueriesArray = NULL;
-    cols = 32;
-    matchScore = 2;
-    misMatchScore = -1;
-    gapPenalty = -1;
     NWRows = queriesLength + 1;
     NWCols = queriesLength + 1;
 
-
-
-    // Moving initiazing to the constructor
+    // Moving initializing to the constructor
     this->NWMatrix = new int* [NWRows];
     for (int i = 0; i < NWRows; i++) {
         this->NWMatrix[i] = new int[NWCols];
@@ -26,31 +20,22 @@ Queries_NW::Queries_NW() {
 
     this->NWMatrix[0][0] = 0;
 
-    // FIll first row with gap penalty
+    // Fill first row with gap penalty
     for (int j = 1; j < NWCols; j++)
-        this->NWMatrix[0][j] = this->NWMatrix[0][j - 1] + this->gapPenalty;
+        this->NWMatrix[0][j] = this->NWMatrix[0][j - 1] + GAP_PENALTY;
 
-    // FIll first col with gap penalty
+    // Fill first col with gap penalty
     for (int i = 1; i < NWRows; i++)
-        this->NWMatrix[i][0] = this->NWMatrix[i - 1][0] + this->gapPenalty;
+        this->NWMatrix[i][0] = this->NWMatrix[i - 1][0] + GAP_PENALTY;
 }
 
-Queries_NW::Queries_NW(string genomeFilePath, string queriesFilePath) {
+Queries_NW::Queries_NW(string genomeFilePath, string queriesFilePath) : FilePath(genomeFilePath), QueriesFilePath(queriesFilePath) {
     HumanGenome = NULL;
     QueriesArray = NULL;
-    cols = 33;
-    matchScore = 2;
-    misMatchScore = -1;
-    gapPenalty = -1;
     NWRows = queriesLength + 1;
     NWCols = queriesLength + 1;
 
-    FilePath = genomeFilePath;
-    QueriesFilePath = queriesFilePath;
-
-
-
-    // Moving initiazing to the constructor
+    // Moving initializing to the constructor
     this->NWMatrix = new int* [NWRows];
     for (int i = 0; i < NWRows; i++) {
         this->NWMatrix[i] = new int[NWCols];
@@ -58,19 +43,35 @@ Queries_NW::Queries_NW(string genomeFilePath, string queriesFilePath) {
 
     this->NWMatrix[0][0] = 0;
 
-    // FIll first row with gap penalty
+    // Fill first row with gap penalty
     for (int j = 1; j < NWCols; j++)
-        this->NWMatrix[0][j] = this->NWMatrix[0][j - 1] + this->gapPenalty;
+        this->NWMatrix[0][j] = this->NWMatrix[0][j - 1] + GAP_PENALTY;
 
-    // FIll first col with gap penalty
+    // Fill first col with gap penalty
     for (int i = 1; i < NWRows; i++)
-        this->NWMatrix[i][0] = this->NWMatrix[i - 1][0] + this->gapPenalty;
+        this->NWMatrix[i][0] = this->NWMatrix[i - 1][0] + GAP_PENALTY;
 }
 
-//**** New Code Start **** //
+Queries_NW::~Queries_NW() {
+    if (HumanGenome) {
+        delete[] HumanGenome;
+    }
 
+    if (QueriesArray) {
+        for (long long int i = 0; i < QueriesCount; ++i) {
+            delete[] QueriesArray[i];
+        }
+        delete[] QueriesArray;
+    }
 
-// Function to read the human genome file
+    if (NWMatrix) {
+        for (int i = 0; i < NWRows; ++i) {
+            delete[] NWMatrix[i];
+        }
+        delete[] NWMatrix;
+    }
+}
+
 void Queries_NW::ReadFile() {
     bool isGenomeHeader = false;
     long genomeLength = 0;
@@ -144,16 +145,13 @@ void Queries_NW::ReadFile() {
     HumanGenome[charArridx] = '\0';
 }
 
-// Method to read the queries file
-void Queries_NW::ReadQueriesFile()
-{
+void Queries_NW::ReadQueriesFile() {
     ifstream QueriesFile(QueriesFilePath);
     long long int lineCount = 0;
     string line;
 
     // Count the number of lines in the queries file
-    while (getline(QueriesFile, line))
-    {
+    while (getline(QueriesFile, line)) {
         ++lineCount;
     }
     QueriesFile.clear();
@@ -164,7 +162,7 @@ void Queries_NW::ReadQueriesFile()
 
     rows = lineCount;
 
-    QueriesArray = new char *[lineCount];
+    QueriesArray = new char*[lineCount];
 
     if (QueriesArray == nullptr) {
         cerr << "Failed to allocate memory for QueriesArray." << endl;
@@ -175,17 +173,14 @@ void Queries_NW::ReadQueriesFile()
 
     long long int rowIndex = 0;
     // Read each query from the file
-    while (getline(QueriesFile, line))
-    {
-        if (line[0] != '>')
-        {
+    while (getline(QueriesFile, line)) {
+        if (line[0] != '>') {
             QueriesArray[rowIndex] = new char[QUERIES_LENGTH + 1];
             if (QueriesArray[rowIndex] == nullptr) {
                 cerr << "Failed to allocate memory for QueriesArray row." << endl;
                 return;
             }
-            for (int queryChar = 0; queryChar < QUERIES_LENGTH; queryChar++)
-            {
+            for (int queryChar = 0; queryChar < QUERIES_LENGTH; queryChar++) {
                 QueriesArray[rowIndex][queryChar] = line[queryChar];
             }
             QueriesArray[rowIndex][QUERIES_LENGTH] = '\0';
@@ -194,107 +189,66 @@ void Queries_NW::ReadQueriesFile()
     }
 }
 
-
-//**** New Code Start **** //
-
-
 long long Queries_NW::fuzzysearchTheQueries(string selectedCommand) {
-    
-    
     time_t start, end;
     std::time(&start);
     std::ios_base::sync_with_stdio(false);
 
     hitCount = 0;
-    //for (long long int i = 0; i < this->rows; i++) {
-    int thresholdScore = ((this->queriesLength - this->allowdMismatchLength) * matchScore) + (this->allowdMismatchLength * misMatchScore);
-    cout << "Some 322 some" << endl;
-
-    cout << "threshold " << thresholdScore <<  endl; 
-
-    cout << "genomeRangeToSearch " << genomeRangeToSearch <<  endl;
+    int thresholdScore = ((this->queriesLength - this->allowdMismatchLength) * MATCH_SCORE) + (this->allowdMismatchLength * MISMATCH_SCORE);
 
 
     for (long long int i = 0; i < this->genomeRangeToSearch; i++) {
         char* randomString = selectedCommand == "RANDOM" ? this->getRandomStringFromSegment() : this->getCompletelyRandomString();
 
-        cout << "this->rows " << this->rows <<  endl;
-        for (long long int j = 0; j < this->rows; j++)
-        {
-           int score = this->needlemanWunsch(randomString, this->QueriesArray[j]);
 
-           cout <<  "score " << score <<  endl;
-
-           if (score >= thresholdScore) {
-               hitCount++;
-               break;
-           }
+        for (long long int j = 0; j < this->QueriesCount; j++) {
+            int score = this->needlemanWunsch(randomString, this->QueriesArray[j]);
+            if (score >= thresholdScore) {
+                hitCount++;
+            }
         }
-
-        
-
-        //int score = needlemanWunsch("jjs", "dasdasd");
+        delete[] randomString; // Free the allocated memory
     }
-
-    std::ios_base::sync_with_stdio(false);
-    time(&end);
-
-    // Calculating total time taken by the program.
-    double time_taken = double(end - start);
-    cout << "Time taken to complete the fuzzy search with "<< selectedCommand <<" : "  << fixed
-        << time_taken;
-    cout << " sec " << endl;
-
+    std::time(&end);
+    std::cout << "Execution Time for Fuzzy Search " << selectedCommand  << " : "  << (end - start) << " seconds" << std::endl;
     return hitCount;
 }
 
 char* Queries_NW::getRandomStringFromSegment() {
-    long long int startIndex = rand() % (this->totalGenomeLength - this->queriesLength + 1);
+    long long int randomIndex = rand() % (totalGenomeLength - queriesLength + 1);
+    char* randomStringSegment = new char[queriesLength + 1];
 
-    cout << "totalGenomeLength " << this->totalGenomeLength <<  endl;
-    cout << "queriesLength " << this->queriesLength <<  endl;
-    cout << "startIndex " << startIndex <<  endl;
+    for (int i = 0; i < queriesLength; i++) {
+        randomStringSegment[i] = HumanGenome[randomIndex + i];
+    }
 
-    // Ensure randomSubStr can hold 32 characters + the null terminator
-    char* randomSubStr = new char[32 + 1];
+    randomStringSegment[queriesLength] = '\0';
 
-    // Copy 32 characters from genomeArray starting at startIndex
-    strncpy(randomSubStr, this->HumanGenome + startIndex, 32);
-
-    randomSubStr = "ATCATTCTCAACAACTACTTTGTGATGTGTGC";
-    // Ensure the string is null-terminated
-    randomSubStr[32] = '\0';
-
-    cout << "randomSubStr " << randomSubStr <<  endl;
-    return randomSubStr;
+    return randomStringSegment;
 }
 
 char* Queries_NW::getCompletelyRandomString() {
-    char* completelyRandomStr = new char[this->queriesLength + 1];
+    char* completelyRandomString = new char[queriesLength + 1];
+    char bases[5] = { 'A', 'C', 'G', 'T', 'N'};
 
-    char genomeChars[6] = { 'A', 'C', 'G', 'T', 'N', '\0'};
-
-    for (int i = 0; i < this->queriesLength; i++)
-    {
-        int x = rand() % strlen(genomeChars);
-        cout << "Completely random index " << x << endl;
-        completelyRandomStr[i] = genomeChars[rand() % strlen(genomeChars)];
+    for (int i = 0; i < queriesLength; i++) {
+        completelyRandomString[i] = bases[rand() % 5];
     }
+    completelyRandomString[queriesLength] = '\0';
 
-    completelyRandomStr[this->queriesLength] = '\0';
-
-    return completelyRandomStr;
+    return completelyRandomString;
 }
 
 int Queries_NW::needlemanWunsch(char* string1, char* string2) {
-    int rows = strlen(string1) + 1;
-    int cols = strlen(string2) + 1;
+    //  int rows = strlen(string1) + 1;
+    // int cols = strlen(string2) + 1;
 
-    cout << "rows " <<  rows <<  endl; 
-    cout << "string1 " <<  string1 <<  endl; 
+    // cout << "rows " <<  rows <<  endl; 
+    // cout << "string1 " <<  string1 <<  endl; 
     
-    cout << "cols " <<  cols <<  endl; 
-    cout << "string2 " <<  string2 <<  endl; 
+    // cout << "cols " <<  cols <<  endl; 
+    // cout << "string2 " <<  string2 <<  endl; 
 
     //cout << rows << endl;
     //cout << cols << endl;
@@ -336,13 +290,13 @@ int Queries_NW::needlemanWunsch(char* string1, char* string2) {
 
     // Fill the NWMatrix
 
-    cout << "NWRows " << NWRows << endl;
-    cout << "NWCols " << NWCols << endl;
-    for (int i = 1; i < this->NWRows; i++) {
-        for (int j = 1; j < this->NWCols; j++) {
-            int leftVal = this->NWMatrix[i][j - 1] + this->gapPenalty;
-            int rightVal = this->NWMatrix[i - 1][j] + this->gapPenalty;
-            int matchScore = string1[i - 1] == string2[j - 1] ? this->matchScore : this->misMatchScore;
+    // cout << "NWRows " << NWRows << endl;
+    // cout << "NWCols " << NWCols << endl;
+    for (int i = 1; i <= QUERIES_LENGTH; i++) {
+        for (int j = 1; j <= QUERIES_LENGTH; j++) {
+            int leftVal = this->NWMatrix[i][j - 1] + GAP_PENALTY;
+            int rightVal = this->NWMatrix[i - 1][j] + GAP_PENALTY;
+            int matchScore = string1[i - 1] == string2[j - 1] ? MATCH_SCORE : MISMATCH_SCORE;
             int diagonalval = matchScore + this->NWMatrix[i - 1][j - 1];
 
             int finalScore = leftVal > rightVal ? 
@@ -362,8 +316,4 @@ int Queries_NW::needlemanWunsch(char* string1, char* string2) {
 
 
     return NWMatrix[this->NWRows - 1][this->NWCols - 1];
-}
-
-Queries_NW::~Queries_NW() {
-
 }
