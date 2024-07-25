@@ -1,6 +1,3 @@
-// HumanGenomeReaderNWBL.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
 #include <iostream>
 #include "Queries_NW.h"
 #include "Queries_BL.h"
@@ -9,8 +6,6 @@
 
 int main(int argc, const char* argv[])
 {
-    std::cout << "Hello World!\n";
-
     string genomeSubjectPath = argv[1],
         queryGenomePath = argv[2],
         selectedCommand = argv[3],
@@ -23,7 +18,9 @@ int main(int argc, const char* argv[])
     if (searchAlgo == "NW") {
         
 
-        Queries_NW* NW = new Queries_NW();
+        Queries_NW* NW = new Queries_NW(genomeSubjectPath, queryGenomePath);
+
+        // cout << "maxSearchRange " << maxSearchRange <<  endl;
 
         NW->genomeRangeToSearch = maxSearchRange;
 
@@ -32,13 +29,16 @@ int main(int argc, const char* argv[])
             cout << endl;*/
 
             //NW->readHumanGenomes("human_genome.txt");
-        NW->readHumanGenomes(genomeSubjectPath);
+        // NW->readHumanGenomes(genomeSubjectPath);
         //"human_genome_verysmall.txt"
+
+        NW->ReadFile();
 
         ///*NW->readHumanGenomes("human.txt");*/
         //NW->readHumanGenomes("human_medium.txt");
 
-        NW->readFragments(queryGenomePath);
+        // NW->readFragments(queryGenomePath);
+        NW->ReadQueriesFile();
         //NW->readFragments("human_reads_trimmed_medium.fa");
         //human_reads_trimmed_small.fa
 
@@ -53,9 +53,11 @@ int main(int argc, const char* argv[])
         //char  string1[] = { 'T','T','C','T','A','T','T','C','T','A','C','A','A','C','A','G', '\0'};
         //char string2[] = { 'T','T','C','T','A','T','T','C','T','A','C','A','A','C','A','G', '\0' };
         //NW->needlemanWunsch(string1, string2);
+    cout << "Some 322" << endl;
         cout << "Starting fuzzy search with NW " << selectedCommand << endl;
         //try
         //{
+
             hitCount = NW->fuzzysearchTheQueries(selectedCommand);
         //}
         //catch (const std::exception er)
