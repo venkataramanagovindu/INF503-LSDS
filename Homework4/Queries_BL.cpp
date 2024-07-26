@@ -181,36 +181,6 @@ long long Queries_BL::fuzzysearchTheQueries(string selectedCommand) {
 
 
 
-    // BL search end
-
-    
-
-    /*
-    
-    
-
-    hitCount = 0;
-    //for (long long int i = 0; i < this->rows; i++) {
-    int thresholdScore = ((this->queriesLength - this->allowdMismatchLength) * matchScore) + (this->allowdMismatchLength * misMatchScore);
-
-    for (long long int i = 0; i < this->genomeRangeToSearch; i++) {
-        char* randomString = selectedCommand == "RANDOM" ? this->getRandomStringFromSegment() : this->getCompletelyRandomString();
-
-        for (long long int j = 0; j < this->rows; j++)
-        {
-            int score = this->needlemanWunsch(randomString, this->genomeQueries[j]);
-
-            if (score >= thresholdScore) {
-                hitCount++;
-                break;
-            }
-        }
-
-
-
-        //int score = needlemanWunsch("jjs", "dasdasd");
-    }*/
-
     std::ios_base::sync_with_stdio(false);
     time(&end);
 
@@ -228,8 +198,6 @@ char* Queries_BL::getRandomStringFromSegment() {
 
     char* randomSubStr = new char[QUERIES_LENGTH + 1];
 
-    //string randomSubStr2
-        //= HumanGenome.substr(1, 2);
 
     strncpy(randomSubStr, this->HumanGenome + startIndex, QUERIES_LENGTH);
     randomSubStr[QUERIES_LENGTH] = '\0';
@@ -326,8 +294,6 @@ void Queries_BL::insertIntoHashTable(char* substr) {
 
 Queries_BL::Node* Queries_BL::searchInHashTable(char* seed) {
 
-    /* Time function returns the time since the
-    Epoch(jan 1 1970). Returned time is in seconds. */
     time_t start, end;
     std::time(&start);
     std::ios_base::sync_with_stdio(false);
@@ -341,12 +307,7 @@ Queries_BL::Node* Queries_BL::searchInHashTable(char* seed) {
         {
             if (strcmp(seed, node->data) == 0)
             {
-                //cout << node->data.compare(substr) << endl;
-                //if (searchPrintCount++ < 10) {
-                //    cout << "Index " << i << " " << node->data << endl;
-
-                //}
-                //node = node->Next;
+ 
                 return node;
             }
 
@@ -409,7 +370,6 @@ long long int Queries_BL::BLAST() {
 
                         if (score >= thresholdScore) {
                             hitCount++;
-                            break;
                         }
                         
                     }
@@ -423,5 +383,23 @@ long long int Queries_BL::BLAST() {
 }
 
 Queries_BL::~Queries_BL() {
+    // Deallocate NWMatrix
+    if (NWMatrix != NULL) {
+        for (int i = 0; i < NWRows; i++) {
+            delete[] NWMatrix[i];
+        }
+        delete[] NWMatrix;
+    }
 
+    // Deallocate other dynamically allocated members
+    if (HumanGenome != NULL) {
+        delete[] HumanGenome;  // Assuming HumanGenome was allocated with new[]
+    }
+    if (QueriesArray != NULL) {
+        delete[] QueriesArray;  // Assuming QueriesArray was allocated with new[]
+    }
+    if (genomeSubStr != NULL) {
+        delete[] genomeSubStr;  // Assuming genomeSubStr was allocated with new[]
+    }
 }
+
