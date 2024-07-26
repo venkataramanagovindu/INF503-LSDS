@@ -18,9 +18,6 @@ Queries_BL::Queries_BL(string genomeFilePath, string queriesFilePath): FilePath(
     genomeSubStr = NULL;
     seedSize = 11;
 
-    cout <<  FilePath << " 24" << endl;
-
-
     // Moving initiazing to the constructor
     this->NWMatrix = new int* [NWRows];
     for (int i = 0; i < NWRows; i++) {
@@ -158,8 +155,6 @@ void Queries_BL::ReadQueriesFile() {
         }
     }
 }
-
-
 
 
 long long Queries_BL::fuzzysearchTheQueries(string selectedCommand) {

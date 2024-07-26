@@ -80,8 +80,14 @@ int main(int argc, const char* argv[])
     {
         Queries_BL* BL = new Queries_BL(genomeSubjectPath, queryGenomePath);
 
+        cout << "Human Genome Reading Started" <<  endl;
         BL->ReadFile();
+        cout << "Human Genome Reading Completed" <<  endl << endl;
+
+        cout << "Queries Reading Started" <<  endl;
         BL->ReadQueriesFile();
+        cout << "Queries Reading Completed" <<  endl <<  endl;
+
         BL->genomeRangeToSearch = maxSearchRange;
 
         cout << "Starting fuzzy search with BLAST " << selectedCommand << " for " << maxSearchRange << endl;
