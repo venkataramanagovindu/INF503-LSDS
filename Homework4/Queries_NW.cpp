@@ -1,4 +1,5 @@
 #include "Queries_NW.h"
+#include "Common.h"
 #include <fstream>
 #include <iostream>
 #include <chrono>

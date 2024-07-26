@@ -1,4 +1,5 @@
 #include "Queries_BL.h"
+#include "Common.h"
 #include <fstream>
 #include <iostream>
 #include <chrono>

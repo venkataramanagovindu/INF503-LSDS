@@ -1,4 +1,5 @@
 #include <iostream>
+#include "Common.h"
 #include "Queries_NW.h"
 #include "Queries_BL.h"
 #include <cstring>
