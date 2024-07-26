@@ -77,13 +77,13 @@ int main(int argc, const char* argv[])
     }
     else
     {
-        Queries_BL* BL = new Queries_BL();
+        Queries_BL* BL = new Queries_BL(genomeSubjectPath, queryGenomePath);
 
-        BL->readHumanGenomes(genomeSubjectPath);
-        BL->readFragments(queryGenomePath);
+        BL->ReadFile();
+        BL->ReadQueriesFile();
         BL->genomeRangeToSearch = maxSearchRange;
 
-        cout << "Starting fuzzy search with BLAST " << selectedCommand << endl;
+        cout << "Starting fuzzy search with BLAST " << selectedCommand << " for " << maxSearchRange << endl;
         hitCount = BL->fuzzysearchTheQueries(selectedCommand);
 
         cout << "Total hits with up to 2 missmatches " << BL->hitCount << endl;

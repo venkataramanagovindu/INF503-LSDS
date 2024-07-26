@@ -3,21 +3,21 @@
 #include <iostream>
 #include <chrono>
 #include <cstring>
+#include <cmath>
 
 using namespace std;
 
 
-Queries_BL::Queries_BL() {
-    genomeArray = NULL;
-    genomeQueries = NULL;
-    cols = 16;
-    matchScore = 2;
-    misMatchScore = -1;
-    gapPenalty = -1;
-    NWRows = queriesLength + 1;
-    NWCols = queriesLength + 1;
+Queries_BL::Queries_BL(string genomeFilePath, string queriesFilePath): FilePath(genomeFilePath), QueriesFilePath(queriesFilePath) {
+    HumanGenome = NULL;
+    QueriesArray = NULL;
+    cols = 32;
+    NWRows = QUERIES_LENGTH + 1;
+    NWCols = QUERIES_LENGTH + 1;
     genomeSubStr = NULL;
     seedSize = 11;
+
+    cout <<  FilePath << " 24" << endl;
 
 
     // Moving initiazing to the constructor
@@ -30,126 +30,136 @@ Queries_BL::Queries_BL() {
 
     // FIll first row with gap penalty
     for (int j = 1; j < NWCols; j++)
-        this->NWMatrix[0][j] = this->NWMatrix[0][j - 1] + this->gapPenalty;
+        this->NWMatrix[0][j] = this->NWMatrix[0][j - 1] + GAP_PENALTY;
 
     // FIll first col with gap penalty
     for (int i = 1; i < NWRows; i++)
-        this->NWMatrix[i][0] = this->NWMatrix[i - 1][0] + this->gapPenalty;
+        this->NWMatrix[i][0] = this->NWMatrix[i - 1][0] + GAP_PENALTY;
 
 
 }
 
-void Queries_BL::readFragments(string fragmentFilePath) {
-    queriesLineCount = 0;
-    string line;
-
-    /* Time function returns the time since the
-    Epoch(jan 1 1970). Returned time is in seconds. */
-    time_t start, end;
-    std::time(&start);
-    std::ios_base::sync_with_stdio(false);
-
-    /* Creating input filestream */
-    ifstream file(fragmentFilePath);
-    while (getline(file, line))
-        queriesLineCount++;
-
-    file.close();
-
-    /* Creating input filestream */
-    ifstream fin(fragmentFilePath);
-
-    this->rows = queriesLineCount / 2;
-
-    this->genomeQueries = new char* [this->rows];
-    char c;
-
-    long long int genomeQueryIdx = 0;
-    for (long long int i = 0; i < queriesLineCount; i++)
-    {
-        getline(fin, line);
-        if (i % 2 == 0)
-            continue;
 
 
-        this->genomeQueries[genomeQueryIdx] = new char[this->cols];
-        int j = 0;
-        for (; j < this->cols; j++) {
-            this->genomeQueries[genomeQueryIdx][j] = line[j];
-        }
-        this->genomeQueries[genomeQueryIdx][j] = '\0';
-        genomeQueryIdx++;
+void Queries_BL::ReadFile() {
+    bool isGenomeHeader = false;
+    long genomeLength = 0;
+    char longestScaffoldName[SCAFFOLD_HEADER_LENGTH], headerCharArray[SCAFFOLD_HEADER_LENGTH];
+    long int genomeScfCount = 0, longestScaffoldLength = 0, headerCharidx = 0;
+    char ch = ' ';
+
+    ifstream inputFile(FilePath, ios::binary);
+    if (!inputFile.is_open()) {
+        cerr << "Failed to open the file." << endl;
+        return;
     }
 
-    time(&end);
+    // Get the size of the file
+    inputFile.seekg(0, ios::end);
+    long long int fileSize = inputFile.tellg();
+    inputFile.seekg(0, ios::beg);
 
-    // Calculating total time taken by the program.
-    double time_taken = double(end - start);
-    cout << "Time taken to read the queries file : " << fixed
-        << time_taken;
-    cout << " sec " << endl;
+    // Allocate memory for the human genome data
+    HumanGenome = new char[fileSize + 1];
+    if (HumanGenome == nullptr) {
+        cerr << "Failed to allocate memory for HumanGenome." << endl;
+        inputFile.close();
+        return;
+    }
 
-    cout << "Numbers of lines in the queries file : " << queriesLineCount << endl;
-}
-
-void Queries_BL::readHumanGenomes(string genomeFilePath) {
-    // read file char by char
-    char ch;
-    fstream fin(genomeFilePath, fstream::in);
-    char* headerCharArray;
-
-    /* Time function returns the time since the
-    Epoch(jan 1 1970). Returned time is in seconds. */
-    time_t start, end;
-    std::time(&start);
-    std::ios_base::sync_with_stdio(false);
-
-    // Calculating the size of the file
-    fin.seekg(0, std::ios::end);
-    long long int size = fin.tellg();
-    fin.seekg(0, std::ios::beg);
-
-    // Dynamically allocating memory for the array
-    genomeArray = new char[size];
-    bool isHeader = false;
     long long int charArridx = 0;
-    long long int headerCharidx = 0;
-    //long long int genomeLength = 0;
+    for (long long int i = 0; i < fileSize; ++i) {
+        ch = inputFile.get();
 
-    while (fin >> noskipws >> ch) {
-
-        // 62 = >
-        if (ch == 62) {
-            isHeader = true;
-
-            /*totalGenomeLength += genomeLength;
-            genomeLength = 0;*/
-        }
-
-        if (isHeader) {
-            if (ch == 10) {
-                isHeader = false;
+        // Check for genome header
+        if (ch == '>') {
+            isGenomeHeader = true;
+            if (genomeLength > 0) {
+                if (genomeLength > longestScaffoldLength) {
+                    longestScaffoldLength = genomeLength;
+                    strcpy(longestScaffoldName, headerCharArray);
+                    longestScaffoldName[14] = '\0';
+                }
+                totalGenomeLength += genomeLength;
+                genomeLength = 0;
             }
         }
-        else if (ch != 10)
-        {
-            genomeArray[charArridx++] = ch;
-            totalGenomeLength++;
+
+        if (isGenomeHeader) {
+            if (ch == '\n') {
+                isGenomeHeader = false;
+                ++genomeScfCount;
+                headerCharArray[headerCharidx] = '\0';
+                headerCharidx = 0;
+            } else if (ch != '>' && headerCharidx < SCAFFOLD_HEADER_LENGTH) {
+                headerCharArray[headerCharidx++] = ch;
+            }
+        } else if (ch != '\n') {
+            if (charArridx < fileSize) {
+                HumanGenome[charArridx++] = ch;
+                genomeLength++;
+            }
         }
     }
-    fin.close();
 
-    genomeArray[charArridx] = '\0';
+    inputFile.close();
+    totalGenomeLength += genomeLength;
 
-    std::ios_base::sync_with_stdio(false);
-    time(&end);
+    if (genomeLength > longestScaffoldLength) {
+        longestScaffoldLength = genomeLength;
+        strcpy(longestScaffoldName, headerCharArray);
+        longestScaffoldName[14] = '\0';
+    }
 
-    // Calculating total time taken by the program.
-    double time_taken = double(end - start);
-    cout << "Time taken to read the genome file : " << fixed
-        << time_taken;
-    cout << " sec " << endl;
+    HumanGenome[charArridx] = '\0';
 }
+
+void Queries_BL::ReadQueriesFile() {
+    ifstream QueriesFile(QueriesFilePath);
+    long long int lineCount = 0;
+    string line;
+
+    // Count the number of lines in the queries file
+    while (getline(QueriesFile, line)) {
+        ++lineCount;
+    }
+    QueriesFile.clear();
+    QueriesFile.seekg(0, ios::beg);
+
+    // Allocate memory for QueriesArray based on the number of queries
+    lineCount = lineCount / 2;
+
+    rows = lineCount;
+
+    QueriesArray = new char*[lineCount];
+
+    if (QueriesArray == nullptr) {
+        cerr << "Failed to allocate memory for QueriesArray." << endl;
+        return;
+    }
+
+    QueriesCount = lineCount;
+
+    long long int rowIndex = 0;
+    // Read each query from the file
+    while (getline(QueriesFile, line)) {
+        if (line[0] != '>') {
+            QueriesArray[rowIndex] = new char[QUERIES_LENGTH + 1];
+            if (QueriesArray[rowIndex] == nullptr) {
+                cerr << "Failed to allocate memory for QueriesArray row." << endl;
+                return;
+            }
+            for (int queryChar = 0; queryChar < QUERIES_LENGTH; queryChar++) {
+                QueriesArray[rowIndex][queryChar] = line[queryChar];
+            }
+            QueriesArray[rowIndex][QUERIES_LENGTH] = '\0';
+            rowIndex++;
+        }
+    }
+}
+
+
+
 
 long long Queries_BL::fuzzysearchTheQueries(string selectedCommand) {
 
@@ -159,13 +169,13 @@ long long Queries_BL::fuzzysearchTheQueries(string selectedCommand) {
 
     // BL search start
 
-    long long int startIndex = rand() % (this->totalGenomeLength - this->genomeRangeToSearch - this->queriesLength);
+    long long int startIndex = rand() % (this->totalGenomeLength - this->genomeRangeToSearch - QUERIES_LENGTH);
 
     genomeSubStr = new char[this->genomeRangeToSearch + 1];
 
     // Copy if it's partial random
     if(selectedCommand == "RANDOM")
-        strncpy(genomeSubStr, this->genomeArray + startIndex, this->genomeRangeToSearch);
+        strncpy(genomeSubStr, this->HumanGenome + startIndex, this->genomeRangeToSearch);
 
     // complete random here
     else
@@ -219,36 +229,34 @@ long long Queries_BL::fuzzysearchTheQueries(string selectedCommand) {
     cout << " sec " << endl;
 
     return hitCount;
-    
-
 }
 
 char* Queries_BL::getRandomStringFromSegment() {
-    long long int startIndex = rand() % (this->totalGenomeLength - this->queriesLength);
+    long long int startIndex = rand() % (this->totalGenomeLength - QUERIES_LENGTH);
 
-    char* randomSubStr = new char[17];
+    char* randomSubStr = new char[QUERIES_LENGTH + 1];
 
     //string randomSubStr2
-        //= genomeArray.substr(1, 2);
+        //= HumanGenome.substr(1, 2);
 
-    strncpy(randomSubStr, this->genomeArray + startIndex, 16);
-    randomSubStr[16] = '\0';
+    strncpy(randomSubStr, this->HumanGenome + startIndex, QUERIES_LENGTH);
+    randomSubStr[QUERIES_LENGTH] = '\0';
 
     return randomSubStr;
 }
 
 char* Queries_BL::getCompletelyRandomString() {
-    char* completelyRandomStr = new char[17];
+    char* completelyRandomStr = new char[QUERIES_LENGTH + 1];
 
     char genomeChars[6] = { 'A', 'C', 'G', 'T', 'N', '\0' };
 
-    for (int i = 0; i < this->queriesLength; i++)
+    for (int i = 0; i < QUERIES_LENGTH; i++)
     {
         int x = rand() % strlen(genomeChars);
         completelyRandomStr[i] = genomeChars[rand() % strlen(genomeChars)];
     }
 
-    completelyRandomStr[this->queriesLength] = '\0';
+    completelyRandomStr[QUERIES_LENGTH] = '\0';
 
     return completelyRandomStr;
 }
@@ -298,9 +306,9 @@ int Queries_BL::needlemanWunsch(char* string1, char* string2) {
     // Fill the NWMatrix
     for (int i = 1; i < this->NWRows; i++) {
         for (int j = 1; j < this->NWCols; j++) {
-            int leftVal = this->NWMatrix[i][j - 1] + this->gapPenalty;
-            int rightVal = this->NWMatrix[i - 1][j] + this->gapPenalty;
-            int matchScore = string1[i - 1] == string2[j - 1] ? this->matchScore : this->misMatchScore;
+            int leftVal = this->NWMatrix[i][j - 1] + GAP_PENALTY;
+            int rightVal = this->NWMatrix[i - 1][j] + GAP_PENALTY;
+            int matchScore = string1[i - 1] == string2[j - 1] ? MATCH_SCORE : MISMATCH_SCORE;
             int diagonalval = matchScore + this->NWMatrix[i - 1][j - 1];
 
             int finalScore = leftVal > rightVal ?
@@ -367,17 +375,12 @@ void Queries_BL::insertIntoHashTable(char* substr) {
 
         long long int index = this->getRadixHash(seed);
 
-
         Node* newNode = new Node;
         newNode->data = seed;
         newNode->index = i;
         newNode->Next = this->HashTable[index];
         this->HashTable[index] = newNode;
-
-
     }
-
-    
 }
 
 Queries_BL::Node* Queries_BL::searchInHashTable(char* seed) {
@@ -440,10 +443,10 @@ char* Queries_BL::getCompletelyRandomSubject(long long int length) {
 long long int Queries_BL::BLAST() {
     hitCount = 0;
     for (long long int i = 0; i < this->rows; i++) {
-        for (int j = 0; j < this->queriesLength - this->seedSize + 1; j++) {
+        for (int j = 0; j < QUERIES_LENGTH - this->seedSize + 1; j++) {
             char* seed = new char[this->seedSize + 1];
 
-            strncpy(seed, this->genomeQueries[i] + j, this->seedSize);
+            strncpy(seed, this->QueriesArray[i] + j, this->seedSize);
 
             seed[this->seedSize] = '\0';
 
@@ -454,17 +457,17 @@ long long int Queries_BL::BLAST() {
                 while (data != NULL){
                     if (strcmp(seed, data->data) == 0) {
                         long long int seedFoundIndex = data->index;
-                        char* actualString = new char[this->queriesLength + 1];
+                        char* actualString = new char[QUERIES_LENGTH + 1];
 
                         // Extend the search
-                        int thresholdScore = ((this->queriesLength - this->allowdMismatchLength) * matchScore) + (this->allowdMismatchLength * misMatchScore);
+                        int thresholdScore = ((QUERIES_LENGTH - this->allowdMismatchLength) * MATCH_SCORE) + (this->allowdMismatchLength * MISMATCH_SCORE);
 
 
-                        strncpy(actualString, genomeSubStr + data->index - j, this->queriesLength);
+                        strncpy(actualString, genomeSubStr + data->index - j, QUERIES_LENGTH);
 
-                        actualString[this->queriesLength] = '\0';
+                        actualString[QUERIES_LENGTH] = '\0';
 
-                        int score = needlemanWunsch(actualString, genomeQueries[i]);
+                        int score = needlemanWunsch(actualString, QueriesArray[i]);
 
                         if (score >= thresholdScore) {
                             hitCount++;
