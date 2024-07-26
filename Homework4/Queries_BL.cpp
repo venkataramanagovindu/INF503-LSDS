@@ -1,10 +1,6 @@
 #include "Queries_BL.h"
 #include "Common.h"
-#include <fstream>
-#include <iostream>
-#include <chrono>
-#include <cstring>
-#include <cmath>
+
 
 using namespace std;
 
@@ -248,7 +244,6 @@ char* Queries_BL::getCompletelyRandomString() {
 
     for (int i = 0; i < QUERIES_LENGTH; i++)
     {
-        int x = rand() % strlen(genomeChars);
         completelyRandomStr[i] = genomeChars[rand() % strlen(genomeChars)];
     }
 
@@ -258,48 +253,6 @@ char* Queries_BL::getCompletelyRandomString() {
 }
 
 int Queries_BL::needlemanWunsch(char* string1, char* string2) {
-    int rows = strlen(string1) + 1;
-    int cols = strlen(string2) + 1;
-
-    //cout << rows << endl;
-    //cout << cols << endl;
-
-    //int x = strlen(string1);
-    //rows = cols = 16 + 1;
-
-    //int** NWMatrix = new int* [rows];
-    //for (int i = 0; i < rows; i++) {
-    //    NWMatrix[i] = new int[this->cols];
-    //}
-
-    //NWMatrix[0][0] = 0;
-
-    //// FIll first row with gap penalty
-    //for (int j = 1; j < cols; j++)
-    //    NWMatrix[0][j] = NWMatrix[0][j - 1] + this->gapPenalty;
-
-    //// FIll first col with gap penalty
-    //for (int i = 1; i < rows; i++)
-    //    NWMatrix[i][0] = NWMatrix[i - 1][0] + this->gapPenalty;
-
-
-    // //  V2
-    //this->NWMatrix = new int* [rows];
-    //for (int i = 0; i < rows; i++) {
-    //    this->NWMatrix[i] = new int[this->cols];
-    //}
-
-    //this->NWMatrix[0][0] = 0;
-
-    //// FIll first row with gap penalty
-    //for (int j = 1; j < cols; j++)
-    //    this->NWMatrix[0][j] = this->NWMatrix[0][j - 1] + this->gapPenalty;
-
-    //// FIll first col with gap penalty
-    //for (int i = 1; i < rows; i++)
-    //    this->NWMatrix[i][0] = this->NWMatrix[i - 1][0] + this->gapPenalty;
-
-    // Fill the NWMatrix
     for (int i = 1; i < this->NWRows; i++) {
         for (int j = 1; j < this->NWCols; j++) {
             int leftVal = this->NWMatrix[i][j - 1] + GAP_PENALTY;
@@ -313,14 +266,6 @@ int Queries_BL::needlemanWunsch(char* string1, char* string2) {
             this->NWMatrix[i][j] = finalScore;
         }
     }
-
-    //for (int i = 0; i < rows; i++) {
-    //    for (int j = 0; j < cols; j++) {
-    //        cout << NWMatrix[i][j] << ' ' << ' ' << ' ' << ' ';
-    //    }
-    //    cout << endl;
-
-    //}
 
     return NWMatrix[this->NWRows - 1][this->NWCols - 1];
 }
@@ -412,11 +357,8 @@ Queries_BL::Node* Queries_BL::searchInHashTable(char* seed) {
 
     time(&end);
 
-    // Calculating total time taken by the program.
     double time_taken = double(end - start);
-    //cout << "Time taken to search in the HashTable : " << fixed
-    //    << time_taken;
-    //cout << " sec " << endl;
+
     return NULL;
 }
 

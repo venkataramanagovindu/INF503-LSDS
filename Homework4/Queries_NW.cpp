@@ -1,9 +1,6 @@
 #include "Queries_NW.h"
 #include "Common.h"
-#include <fstream>
-#include <iostream>
-#include <chrono>
-#include <cstring>
+
 
 using namespace std;
 
@@ -196,15 +193,16 @@ long long Queries_NW::fuzzysearchTheQueries(string selectedCommand) {
     std::ios_base::sync_with_stdio(false);
 
     hitCount = 0;
+    int score = 0;
     int thresholdScore = ((this->queriesLength - this->allowdMismatchLength) * MATCH_SCORE) + (this->allowdMismatchLength * MISMATCH_SCORE);
 
-
+    char* randomString = NULL;
     for (long long int i = 0; i < this->genomeRangeToSearch; i++) {
-        char* randomString = selectedCommand == "RANDOM" ? this->getRandomStringFromSegment() : this->getCompletelyRandomString();
+        randomString = selectedCommand == "RANDOM" ? this->getRandomStringFromSegment() : this->getCompletelyRandomString();
 
 
         for (long long int j = 0; j < this->QueriesCount; j++) {
-            int score = this->needlemanWunsch(randomString, this->QueriesArray[j]);
+            score = this->needlemanWunsch(randomString, this->QueriesArray[j]);
             if (score >= thresholdScore) {
                 hitCount++;
             }
@@ -242,57 +240,6 @@ char* Queries_NW::getCompletelyRandomString() {
 }
 
 int Queries_NW::needlemanWunsch(char* string1, char* string2) {
-    //  int rows = strlen(string1) + 1;
-    // int cols = strlen(string2) + 1;
-
-    // cout << "rows " <<  rows <<  endl; 
-    // cout << "string1 " <<  string1 <<  endl; 
-    
-    // cout << "cols " <<  cols <<  endl; 
-    // cout << "string2 " <<  string2 <<  endl; 
-
-    //cout << rows << endl;
-    //cout << cols << endl;
-
-    //int x = strlen(string1);
-    //rows = cols = 16 + 1;
-
-    //int** NWMatrix = new int* [rows];
-    //for (int i = 0; i < rows; i++) {
-    //    NWMatrix[i] = new int[this->cols];
-    //}
-
-    //NWMatrix[0][0] = 0;
-
-    //// FIll first row with gap penalty
-    //for (int j = 1; j < cols; j++)
-    //    NWMatrix[0][j] = NWMatrix[0][j - 1] + this->gapPenalty;
-
-    //// FIll first col with gap penalty
-    //for (int i = 1; i < rows; i++)
-    //    NWMatrix[i][0] = NWMatrix[i - 1][0] + this->gapPenalty;
-
-
-    // //  V2
-    //this->NWMatrix = new int* [rows];
-    //for (int i = 0; i < rows; i++) {
-    //    this->NWMatrix[i] = new int[this->cols];
-    //}
-
-    //this->NWMatrix[0][0] = 0;
-
-    //// FIll first row with gap penalty
-    //for (int j = 1; j < cols; j++)
-    //    this->NWMatrix[0][j] = this->NWMatrix[0][j - 1] + this->gapPenalty;
-
-    //// FIll first col with gap penalty
-    //for (int i = 1; i < rows; i++)
-    //    this->NWMatrix[i][0] = this->NWMatrix[i - 1][0] + this->gapPenalty;
-
-    // Fill the NWMatrix
-
-    // cout << "NWRows " << NWRows << endl;
-    // cout << "NWCols " << NWCols << endl;
     for (int i = 1; i <= QUERIES_LENGTH; i++) {
         for (int j = 1; j <= QUERIES_LENGTH; j++) {
             int leftVal = this->NWMatrix[i][j - 1] + GAP_PENALTY;
@@ -306,15 +253,6 @@ int Queries_NW::needlemanWunsch(char* string1, char* string2) {
             this->NWMatrix[i][j] = finalScore;
         }
     }
-
-    // for (int i = 0; i < rows; i++) {
-    //    for (int j = 0; j < cols; j++) {
-    //        cout << NWMatrix[i][j] << ' ';
-    //    }
-    //    cout << endl;
-
-    // }
-
 
     return NWMatrix[this->NWRows - 1][this->NWCols - 1];
 }

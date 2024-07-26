@@ -1,5 +1,10 @@
 #pragma once
 #include <string>
+#include <fstream>
+#include <iostream>
+#include <chrono>
+#include <cstring>
+#include <cmath>
 using namespace std;
 
 class Queries_BL

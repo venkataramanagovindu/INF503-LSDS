@@ -1,5 +1,9 @@
 #pragma once
 #include <string>
+#include <fstream>
+#include <iostream>
+#include <chrono>
+#include <cstring>
 using namespace std;
 
 
