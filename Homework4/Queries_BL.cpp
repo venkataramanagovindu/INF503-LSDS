@@ -292,6 +292,7 @@ void Queries_BL::insertIntoHashTable(char* substr) {
     }
 }
 
+// to search in HT
 Queries_BL::Node* Queries_BL::searchInHashTable(char* seed) {
 
     time_t start, end;
@@ -323,6 +324,8 @@ Queries_BL::Node* Queries_BL::searchInHashTable(char* seed) {
     return NULL;
 }
 
+
+// to get completely random
 char* Queries_BL::getCompletelyRandomSubject(long long int length) {
     char* completelyRandomStr = new char[length + 1];
 
