@@ -1,6 +1,6 @@
 // HumanGenomeReaderPrefixTrie.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
-
+#include <chrono>        // For high resolution clock and measuring time durations
 #include <iostream>
 #include "PrefixTrie.h"
 #include <iostream>
@@ -11,7 +11,7 @@ int main(int argc, const char* argv[])
 {
 
     // TO DO :: Uncomment
-    // srand(static_cast<unsigned int>(time(0)));
+    srand(static_cast<unsigned int>(time(0)));
 
 
     //float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
@@ -24,28 +24,65 @@ int main(int argc, const char* argv[])
     //// Generate a random number between 0 and 1
     //double random_number = distr(eng);
 
-    std::cout << "Hello World!\n";
+    // std::cout << "Hello World!\n";
 
     string genomeSubjectPath = argv[1];
     //string noOfFragments = argv[2];
     long long int noOfFragments = stol(argv[2]);
 
-    char selectedPart = argv[3][0];
+        char selectedPart = argv[3][0];
+
+
+    // int selectedPart = stoi(argv[3]);
+
+    // if(selectedPart > 3 && selectedPart < 1)
+    // {
+    //     count << "Please give proper input" << endl;
+    // }
 
     PrefixTrie* PT = new PrefixTrie(noOfFragments, genomeSubjectPath);
     //PrefixTrie* PT = new PrefixTrie(2);
+
+
+
+    // Variable to store the time taken for searching
+    double time_taken = 0.0;
+
+    // Variables to measure the start and end time
+    chrono::high_resolution_clock::time_point startTime;
+    chrono::high_resolution_clock::time_point endTime;
+    chrono::milliseconds duration;
+
+
 
     PT->ReadFile();
     PT->getSegmentFromSubject();
 
     if (selectedPart == 'A' || selectedPart == 'B') {
         
-        cout << "Executing the Part " << selectedPart << endl;
-        cout << "Calling buildThePrefixTrie" << endl;
+        cout << "Part " << selectedPart << " is executing" << endl << endl;
+        cout << "Building PrefixTrie Started" << endl;
+            startTime = chrono::high_resolution_clock::now();
         PT->buildThePrefixTrie(selectedPart);
-        PT->count(selectedPart);
+            endTime = chrono::high_resolution_clock::now();
+
+                // Calculate the total time taken to read the file
+    duration = chrono::duration_cast<chrono::milliseconds>(endTime - startTime);
+    time_taken = duration.count() / 1000.0; // Convert the duration to seconds
+
+
+
+        cout << "PrefixTrie building Completed" << endl << endl;
+
+        cout << "Time taken to build PrefixTrie: " << time_taken << " sec" << endl << endl;
+
+
+            cout << "Total nodes in the PrefixTrie " << PT->nodeCount << endl << endl;
+
+        cout << "Fuzzy search started" << endl;
         PT->search(selectedPart);
-        cout << "Completed Part " << selectedPart << endl;
+        cout << "Fuzzy search completed" << endl << endl;
+        cout << "Completed " << selectedPart << endl;
     }
 
     // Accepting user input as C to run Part A and Part B using same segment
@@ -53,12 +90,26 @@ int main(int argc, const char* argv[])
         char parts[] = "AB";
         for (int i = 0; i < strlen(parts); i++)
         {
-            cout << "Executing the Part " << parts[i] << endl;
-            cout << "Calling buildThePrefixTrie" << endl;
+            cout << "Part " << parts[i]  << " is executing" << endl << endl;
+        cout << "Building PrefixTrie Started" << endl;
+            startTime = chrono::high_resolution_clock::now();
+
             PT->buildThePrefixTrie(parts[i]);
-            PT->count(parts[i]);
+            endTime = chrono::high_resolution_clock::now();
+
+                    cout << "Time taken to build PrefixTrie: " << time_taken << " sec" << endl << endl;
+
+
+                    cout << "PrefixTrie building Completed" << endl;
+
+                        cout << "Total nodes in the PrefixTrie " << PT->nodeCount << endl  << endl;
+
+        cout << "Fuzzy search started" << endl;
+
             PT->search(parts[i]);
-            cout << "Completed Part " << parts[i] << endl;
+        cout << "Fuzzy search completed" << endl  << endl;
+
+        cout << "Completed " << parts[i] << endl;
             cout << endl << endl;
         }
     }
