@@ -9,6 +9,11 @@
 
 int main(int argc, const char* argv[])
 {
+
+    // TO DO :: Uncomment
+    // srand(static_cast<unsigned int>(time(0)));
+
+
     //float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 
     //// Create a random number engine and distribution
@@ -27,10 +32,10 @@ int main(int argc, const char* argv[])
 
     char selectedPart = argv[3][0];
 
-    PrefixTrie* PT = new PrefixTrie(noOfFragments);
+    PrefixTrie* PT = new PrefixTrie(noOfFragments, genomeSubjectPath);
     //PrefixTrie* PT = new PrefixTrie(2);
 
-    PT->readHumanGenomes(genomeSubjectPath);
+    PT->ReadFile();
     PT->getSegmentFromSubject();
 
     if (selectedPart == 'A' || selectedPart == 'B') {

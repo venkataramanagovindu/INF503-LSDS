@@ -7,95 +7,175 @@
 using namespace std;
 
 PrefixTrie::PrefixTrie() {
-    trieRoot = makeTrieNode(NULL);
-    trieRootWithError = makeTrieNode(NULL);
-    queryLength = 36;
-    randomQuery = new char[queryLength + 1];
+    trieRoot = makeTrieNode();
+    trieRootWithError = makeTrieNode();
+    randomQuery = new char[QUERY_LENGTH + 1];
     nodeCount = 0;
     
 }
 
-PrefixTrie::PrefixTrie(long long int qSize) : PrefixTrie() {
-    this->queriesSize = qSize;
-    this->segmentLength = 50;
-    //this->segmentLength = 50;
-
+PrefixTrie::PrefixTrie(long long int qSize, string genomeFilePath) : PrefixTrie() {
+    this->numberOfQueries = qSize;
+    // this->subjectSegmentLength = 50000;
+    this->subjectSegmentLength = 50;
+    FilePath = genomeFilePath;
      
-    //trieRoot = makeTrieNode(NULL);
+    //trieRoot = makeTrieNode();
 }
 
-void PrefixTrie::readHumanGenomes(string genomeFilePath) {
-    // read file char by char
-    char ch;
-    fstream fin(genomeFilePath, fstream::in);
-    char* headerCharArray;
 
-    /* Time function returns the time since the
-    Epoch(jan 1 1970). Returned time is in seconds. */
-    time_t start, end;
-    std::time(&start);
-    std::ios_base::sync_with_stdio(false);
 
-    // Calculating the size of the file
-    fin.seekg(0, std::ios::end);
-    long long int size = fin.tellg();
-    fin.seekg(0, std::ios::beg);
+// void PrefixTrie::readHumanGenomes(string genomeFilePath) {
+//     // read file char by char
+//     char ch;
+//     fstream fin(genomeFilePath, fstream::in);
+//     char* headerCharArray;
 
-    // Dynamically allocating memory for the array
-    genomeArray = new char[size];
-    bool isHeader = false;
+//     /* Time function returns the time since the
+//     Epoch(jan 1 1970). Returned time is in seconds. */
+//     time_t start, end;
+//     std::time(&start);
+//     std::ios_base::sync_with_stdio(false);
+
+//     // Calculating the size of the file
+//     fin.seekg(0, std::ios::end);
+//     long long int size = fin.tellg();
+//     fin.seekg(0, std::ios::beg);
+
+//     // Dynamically allocating memory for the array
+//     genomeArray = new char[size];
+//     bool isHeader = false;
+//     long long int charArridx = 0;
+//     long long int headerCharidx = 0;
+//     //long long int genomeLength = 0;
+
+//     while (fin >> noskipws >> ch) {
+
+//         // 62 = >
+//         if (ch == 62) {
+//             isHeader = true;
+
+//             /*totalGenomeLength += genomeLength;
+//             genomeLength = 0;*/
+//         }
+
+//         if (isHeader) {
+//             if (ch == 10) {
+//                 isHeader = false;
+//             }
+//         }
+//         else if (ch != 10)
+//         {
+//             genomeArray[charArridx++] = ch;
+//             totalGenomeLength++;
+//         }
+//     }
+//     fin.close();
+
+//     genomeArray[charArridx] = '\0';
+
+//     std::ios_base::sync_with_stdio(false);
+//     time(&end);
+
+//     // Calculating total time taken by the program.
+//     double time_taken = double(end - start);
+//     cout << "Time taken to read the genome file : " << fixed
+//         << time_taken;
+//     cout << " sec " << endl;
+// }
+
+void PrefixTrie::ReadFile() {
+    bool isGenomeHeader = false;
+    long genomeLength = 0;
+    char longestScaffoldName[SCAFFOLD_HEADER_LENGTH], headerCharArray[SCAFFOLD_HEADER_LENGTH];
+    long int genomeScfCount = 0, longestScaffoldLength = 0, headerCharidx = 0;
+    char ch = ' ';
+
+    ifstream inputFile(FilePath, ios::binary);
+    if (!inputFile.is_open()) {
+        cerr << "Failed to open the file." << endl;
+        return;
+    }
+
+    // Get the size of the file
+    inputFile.seekg(0, ios::end);
+    long long int fileSize = inputFile.tellg();
+    inputFile.seekg(0, ios::beg);
+
+    // Allocate memory for the human genome data
+    HumanGenome = new char[fileSize + 1];
+    if (HumanGenome == nullptr) {
+        cerr << "Failed to allocate memory for HumanGenome." << endl;
+        inputFile.close();
+        return;
+    }
+
     long long int charArridx = 0;
-    long long int headerCharidx = 0;
-    //long long int genomeLength = 0;
+    for (long long int i = 0; i < fileSize; ++i) {
+        ch = inputFile.get();
 
-    while (fin >> noskipws >> ch) {
-
-        // 62 = >
-        if (ch == 62) {
-            isHeader = true;
-
-            /*totalGenomeLength += genomeLength;
-            genomeLength = 0;*/
-        }
-
-        if (isHeader) {
-            if (ch == 10) {
-                isHeader = false;
+        // Check for genome header
+        if (ch == '>') {
+            isGenomeHeader = true;
+            if (genomeLength > 0) {
+                if (genomeLength > longestScaffoldLength) {
+                    longestScaffoldLength = genomeLength;
+                    strcpy(longestScaffoldName, headerCharArray);
+                    longestScaffoldName[14] = '\0';
+                }
+                totalGenomeLength += genomeLength;
+                genomeLength = 0;
             }
         }
-        else if (ch != 10)
-        {
-            genomeArray[charArridx++] = ch;
-            totalGenomeLength++;
+
+        if (isGenomeHeader) {
+            if (ch == '\n') {
+                isGenomeHeader = false;
+                ++genomeScfCount;
+                headerCharArray[headerCharidx] = '\0';
+                headerCharidx = 0;
+            } else if (ch != '>' && headerCharidx < SCAFFOLD_HEADER_LENGTH) {
+                headerCharArray[headerCharidx++] = ch;
+            }
+        } else if (ch != '\n') {
+            if (charArridx < fileSize) {
+                HumanGenome[charArridx++] = ch;
+                genomeLength++;
+            }
         }
     }
-    fin.close();
 
-    genomeArray[charArridx] = '\0';
+    inputFile.close();
+    totalGenomeLength += genomeLength;
 
-    std::ios_base::sync_with_stdio(false);
-    time(&end);
+    if (genomeLength > longestScaffoldLength) {
+        longestScaffoldLength = genomeLength;
+        strcpy(longestScaffoldName, headerCharArray);
+        longestScaffoldName[14] = '\0';
+    }
 
-    // Calculating total time taken by the program.
-    double time_taken = double(end - start);
-    cout << "Time taken to read the genome file : " << fixed
-        << time_taken;
-    cout << " sec " << endl;
+    HumanGenome[charArridx] = '\0';
+
+    cout << "Total Subject Length " << totalGenomeLength << endl;
 }
+ 
+
 
 void PrefixTrie::getSegmentFromSubject() {
-    genomeSubStr = new char[this->segmentLength + 1];
+    subjectSegment = new char[this->subjectSegmentLength + 1];
 
-    // TO DO :: this->queryLength can be removed
-    long long int startIndex = rand() % (this->totalGenomeLength - this->segmentLength - this->queryLength);
+    // TO DO :: this->QUERY_LENGTH can be removed
+    long long int startIndex = rand() % (this->totalGenomeLength - this->subjectSegmentLength);
 
-    strncpy(genomeSubStr, genomeArray + startIndex, this->segmentLength);
+    cout << "Subject Random Starting Index " << startIndex <<  endl;
 
-    genomeSubStr[this->segmentLength] = '\0';
+    strncpy(subjectSegment, HumanGenome + startIndex, this->subjectSegmentLength);
+
+    subjectSegment[this->subjectSegmentLength] = '\0';
 }
 
 void PrefixTrie::buildThePrefixTrie(char select) {
-    nodeCount = 0;
+    nodeCount = 1;
 
     TrieNode* node;
 
@@ -109,7 +189,7 @@ void PrefixTrie::buildThePrefixTrie(char select) {
     int index = 0;
 
     // TODO :: Update to number of queries
-    for (int j = 0; j < this->queriesSize; j++) {
+    for (int j = 0; j < this->numberOfQueries; j++) {
         randomQuery = getRandomStringFromSegment(select);
 
         //cout << randomQuery << endl;
@@ -117,7 +197,7 @@ void PrefixTrie::buildThePrefixTrie(char select) {
         node = select == 'A' ? trieRoot : trieRootWithError;
 
 
-        for (int i = 0; i < this->queryLength + 1; i++) {
+        for (int i = 0; i < QUERY_LENGTH + 1; i++) {
 
             //node = insertIntoTrie(node, string1[i]);
 
@@ -151,8 +231,12 @@ void PrefixTrie::buildThePrefixTrie(char select) {
             }
 
             if (node->children[index] == NULL)
-                node->children[index] = makeTrieNode(randomQuery + i);
+            {
+                nodeCount++;
+                node->children[index] = makeTrieNode();
+            }   
 
+            // TO DO :: Check if the data exist and replace only if not
             node->children[index]->data = randomQuery + i ;
             node->children[index]->count++;
 
@@ -168,12 +252,20 @@ void PrefixTrie::buildThePrefixTrieWithError() {
 
 char* PrefixTrie::generateStringWithError(char* str) {
     float r;
-    for (int i = 0; i < this->queryLength; i++)
+    for (int i = 0; i < QUERY_LENGTH; i++)
     {
-        r = (float)rand() / (float)RAND_MAX;
+        r = (float)rand() / (RAND_MAX + 1.0);
 
-        if ((float)rand() / (float)RAND_MAX < 0.05) {
+        // cout << "Random float " << (float)rand() << endl;
+        // cout << "(float)RAND_MAX " << (float)RAND_MAX << endl;
+
+        // cout << "Error rate random number " << r << endl;
+
+        if (r < 0.05) {
+            char temp = str[i];
             str[i] = this->GenomeChars[rand() % 5];
+
+            // cout << "Updated from " << temp << " to " << str[i] << endl;
         }
     }
     return str;
@@ -181,7 +273,7 @@ char* PrefixTrie::generateStringWithError(char* str) {
 
 void PrefixTrie::count(char select) {
     cout << "Calculating the count" << endl;
-    this->countNodesInTire(select == 'A' ? this->trieRoot : this->trieRootWithError);
+    // this->countNodesInTire(select == 'A' ? this->trieRoot : this->trieRootWithError);
     cout << "Total nodes in the trie " << nodeCount << endl;
 }
 
@@ -200,11 +292,11 @@ void PrefixTrie::countNodesInTire(TrieNode* node) {
 
 void PrefixTrie::deleteNodesInTire(TrieNode* node) {
     // Prints the nodes of the trie
-    if (!node)
+    if (node ==  NULL)
         return;
     TrieNode* temp = node;
     //printf("%c -> ,  %llu \n", *temp->data, nodeCount);
-    nodeCount++;
+    // nodeCount++;
     for (int i = 0; i < trieChildrenCount; i++) {
         deleteNodesInTire(temp->children[i]);
         delete temp->children[i];
@@ -249,11 +341,11 @@ bool PrefixTrie::fuzzySearch(TrieNode* node, char* str, int idx, int mmc) {
 }
 
 void PrefixTrie::search(char select) {
-    char* subStr = new char[this->queryLength + 1];
-    for (long long int i = 0; i < segmentLength - queryLength; i++)
+    char* subStr = new char[QUERY_LENGTH + 1];
+    for (long long int i = 0; i < subjectSegmentLength - QUERY_LENGTH; i++)
     {
-        strncpy(subStr, this->genomeSubStr + i, this->queryLength);
-        subStr[this->queryLength] = '\0';
+        strncpy(subStr, this->subjectSegment + i, QUERY_LENGTH);
+        subStr[QUERY_LENGTH] = '\0';
         //cout << subStr << " Searching for" << endl;
         if (this->fuzzySearch(select == 'A' ? this->trieRoot : this->trieRootWithError, subStr, 0, 0)) {
             searchFoundCount++;
@@ -266,15 +358,17 @@ void PrefixTrie::search(char select) {
 
 
 char* PrefixTrie::getRandomStringFromSegment(char select) {
-    long long int startIndex = rand() % (this->segmentLength - this->queryLength);
+    long long int startIndex = rand() % (this->subjectSegmentLength - QUERY_LENGTH);
 
-    char* randomSubStr = new char[this->queryLength + 1];
+    cout << "Random string starting index " << startIndex << endl;
+
+    char* randomSubStr = new char[QUERY_LENGTH + 1];
 
     //string randomSubStr2
         //= genomeArray.substr(1, 2);
 
-    strncpy(randomSubStr, this->genomeSubStr + startIndex, this->queryLength);
-    randomSubStr[this->queryLength] = '\0';
+    strncpy(randomSubStr, this->subjectSegment + startIndex, QUERY_LENGTH);
+    randomSubStr[QUERY_LENGTH] = '\0';
 
     if (select == 'B') {
         randomSubStr = this->generateStringWithError(randomSubStr);
@@ -284,35 +378,8 @@ char* PrefixTrie::getRandomStringFromSegment(char select) {
     return randomSubStr;
 }
 
-//TrieNode* PrefixTrie::insertIntoTrie(TrieNode node, char c) {
-//    int index = 0;
-//    switch (c)
-//    {
-//    case 'A':
-//        index = 0;
-//        break;
-//    case 'C':
-//        index = 1;
-//        break;
-//    case 'G':
-//        index = 2;
-//        break;
-//    case 'T':
-//        index = 3;
-//        break;
-//    default:
-//        index = 4;
-//        break;
-//    }
-//
-//    if(node.children[index]->data == NULL)
-//        node.children[index]->data = c;
-//    node.children[index]->count++;
-//
-//    return node.children[index];
-//}
 
-TrieNode* PrefixTrie::makeTrieNode(char* c) {
+TrieNode* PrefixTrie::makeTrieNode() {
     // Allocate memory for node
     TrieNode* node = new TrieNode;
 
@@ -326,8 +393,8 @@ TrieNode* PrefixTrie::makeTrieNode(char* c) {
 }
 
 PrefixTrie::~PrefixTrie() {
-    delete[] genomeArray;
-    delete[] genomeSubStr;
+    delete[] HumanGenome;
+    delete[] subjectSegment;
     this->deleteNodesInTire(this->trieRoot);
     this->deleteNodesInTire(this->trieRootWithError);
 }

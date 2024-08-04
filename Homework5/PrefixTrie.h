@@ -5,6 +5,13 @@ using namespace std;
 // Since we have 5 letters, we need
 // 5 children per node
 #define trieChildrenCount 5
+const int SCAFFOLD_HEADER_LENGTH = 15;
+const int QUERY_LENGTH = 36;
+const int PRINT_FRAGMENTS = 15;
+const int MATCH_SCORE = 2;
+const int MISMATCH_SCORE = -1;
+const int GAP_PENALTY = -1;
+
 
 typedef struct TrieNode TrieNode;
 
@@ -21,13 +28,14 @@ struct TrieNode {
 class PrefixTrie
 {
 	private:
-		char* genomeArray;
+		// char* genomeArray;
 		long long int totalGenomeLength = 0;
 		TrieNode* trieRoot;
 		TrieNode* trieRootWithError;
-		char* genomeSubStr;
-		long long int queriesSize; // Number of queries to be picked from the 50k segment, 5k, 50k etc
-		long long int segmentLength; // The length of the segment from the Subject Genome - 50K
+		char* subjectSegment;
+		// long long int queriesSize; // Number of queries to be picked from the 50k segment, 5k, 50k etc
+		long long int numberOfQueries; // Number of queries to be picked from the 50k segment, 5k, 50k etc
+		long long int subjectSegmentLength; // The length of the segment from the Subject Genome - 50K
 		int queryLength; // Length of each query - 36
 		char* randomQuery;
 		long long int nodeCount;
@@ -35,14 +43,18 @@ class PrefixTrie
 		long long int searchFoundCount = 0;
 		char GenomeChars[5] = { 'A', 'C', 'G', 'T', 'N' };
 
+		string FilePath;
+		char* HumanGenome;
+
 	public:
 		PrefixTrie();
-		PrefixTrie(long long int queriesSize);
-		void readHumanGenomes(string genomeFilePath);
+		PrefixTrie(long long int queriesSize, string genomeFilePath);
+		//void readHumanGenomes(string genomeFilePath);
+		void ReadFile();
 		void buildThePrefixTrie(char select = 'A');
 		void buildThePrefixTrieWithError();
 		char* generateStringWithError(char* str);
-		TrieNode* makeTrieNode(char* c);
+		TrieNode* makeTrieNode();
 		//TrieNode* insertIntoTrie(TrieNode node, char c);
 		void getSegmentFromSubject();
 		char* getRandomStringFromSegment(char select);
