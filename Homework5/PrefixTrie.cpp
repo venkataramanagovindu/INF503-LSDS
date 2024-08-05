@@ -15,7 +15,7 @@ PrefixTrie::PrefixTrie() : top(nullptr) {
 
 PrefixTrie::PrefixTrie(long long int qSize, string genomeFilePath) : PrefixTrie() {
     this->numberOfQueries = qSize;
-    this->subjectSegmentLength = 500;
+    this->subjectSegmentLength = 50000;
     FilePath = genomeFilePath;
 }
 
@@ -42,6 +42,8 @@ void PrefixTrie::ReadFile() {
         inputFile.close();
         return;
     }
+
+    cout << "Reading the human genome file..." << endl;
 
     long long int charArridx = 0;
     for (long long int i = 0; i < fileSize; ++i) {
@@ -99,7 +101,7 @@ void PrefixTrie::getSegmentFromSubject() {
     subjectSegment[this->subjectSegmentLength] = '\0';
 }
 
-void PrefixTrie::buildThePrefixTrie(char select) {
+void PrefixTrie::buildThePrefixTrie(int selectedPart) {
     nodeCount = 1;
     TrieNode* node;
     string s1 = "ACGTN";
@@ -109,8 +111,8 @@ void PrefixTrie::buildThePrefixTrie(char select) {
     int index = 0;
 
     for (int j = 0; j < this->numberOfQueries; j++) {
-        randomQuery = getRandomStringFromSegment(select);
-        node = select == 'A' ? trieRoot : trieRootWithError;
+        randomQuery = getRandomStringFromSegment(selectedPart);
+        node = selectedPart == BASIC_PREFIX ? trieRoot : trieRootWithError;
 
         for (int i = 0; i < QUERY_LENGTH + 1; i++) {
 
@@ -157,7 +159,6 @@ void PrefixTrie::buildThePrefixTrie(char select) {
     }
 }
 
-void PrefixTrie::buildThePrefixTrieWithError() {}
 
 char* PrefixTrie::generateStringWithError(char* str) {
     float r;
@@ -171,10 +172,7 @@ char* PrefixTrie::generateStringWithError(char* str) {
     return str;
 }
 
-// void PrefixTrie::count(char select) {
-//     cout << "Calculating the count" << endl;
-//     cout << "Total nodes in the trie " << nodeCount << endl;
-// }
+
 
 void PrefixTrie::countNodesInTire(TrieNode* node) {
     if (!node) return;
@@ -218,7 +216,7 @@ bool PrefixTrie::fuzzySearch(TrieNode* node, char* str, int idx, int mmc) {
         string followedPath = current->followedPath;
         string remainingPath = current->remainingPath;
 
-        cout << current->remainingPath << endl;
+        // cout << current->remainingPath << endl;
 
         if (remainingPath.empty()) {
             if (currentNode->is_leaf) {
@@ -246,23 +244,21 @@ bool PrefixTrie::fuzzySearch(TrieNode* node, char* str, int idx, int mmc) {
 
     return searchFoundCount > 0;
 }
-void PrefixTrie::search(char select) {
+void PrefixTrie::search(int selectedPart) {
     char* subStr = new char[QUERY_LENGTH + 1];
     for (long long int i = 0; i < subjectSegmentLength - QUERY_LENGTH; i++)
     {
         strncpy(subStr, this->subjectSegment + i, QUERY_LENGTH);
         subStr[QUERY_LENGTH] = '\0';
         //cout << subStr << " Searching for" << endl;
-        if (this->fuzzySearch(select == 'A' ? this->trieRoot : this->trieRootWithError, subStr, 0, 0)) {
-            searchFoundCount++;
-            //cout << "Search found" << endl;
-        }
+
+        this->fuzzySearch(selectedPart == BASIC_PREFIX ? this->trieRoot : this->trieRootWithError, subStr, 0, 0);
     }
 
     cout << "Total searches upto 1 miss match " << searchFoundCount << endl;
 }
 
-char* PrefixTrie::getRandomStringFromSegment(char select) {
+char* PrefixTrie::getRandomStringFromSegment(int selectedPart) {
     long long int startIndex = rand() % (this->subjectSegmentLength - QUERY_LENGTH);
 
     // cout << "Random string starting index " << startIndex << endl;
@@ -275,7 +271,7 @@ char* PrefixTrie::getRandomStringFromSegment(char select) {
     strncpy(randomSubStr, this->subjectSegment + startIndex, QUERY_LENGTH);
     randomSubStr[QUERY_LENGTH] = '\0';
 
-    if (select == 'B') {
+    if (selectedPart == ERROR_PREFIX) {
         randomSubStr = this->generateStringWithError(randomSubStr);
     }
 
